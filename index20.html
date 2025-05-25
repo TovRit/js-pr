@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Безопасность и хранилища данных</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        .section {
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, button {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 10px 16px;
+            transition: 0.3s;
+            color: #333;
+        }
+        .tab button:hover {
+            background-color: #ddd;
+        }
+        .tab button.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tabcontent {
+            display: none;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+        }
+        .visible {
+            display: block;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .performance-result {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e6f7ff;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Безопасность и хранилища данных</h1>
+    
+    <div class="tab">
+        <button class="tablinks active" onclick="openTab(event, 'analysis')">Анализ сайтов</button>
+        <button class="tablinks" onclick="openTab(event, 'auth')">Безопасная авторизация</button>
+        <button class="tablinks" onclick="openTab(event, 'migration')">Миграция на localStorage</button>
+        <button class="tablinks" onclick="openTab(event, 'hybrid')">Гибридное хранилище</button>
+    </div>
+    
+    <!-- Анализ популярных сайтов -->
+    <div id="analysis" class="tabcontent visible">
+        <h2>Анализ cookies популярных сайтов</h2>
+        
+        <div class="section">
+            <h3>1. YouTube</h3>
+            <pre>
+- VISITOR_INFO1_LIVE: идентификатор для отслеживания, Secure, HttpOnly
+- YSC: сессионный cookie для отслеживания просмотров, Secure
+- PREF: настройки пользователя, Secure, HttpOnly
+            </pre>
+            <p><strong>Вывод:</strong> Используются для аутентификации, персонализации и трекинга. Основные защищены флагами Secure и HttpOnly.</p>
+        </div>
+        
+        <div class="section">
+            <h3>2. GitHub</h3>
+            <pre>
+- _gh_sess: сессионный cookie, Secure, HttpOnly
+- _octo: аналитика, Secure
+- logged_in: флаг аутентификации, Secure, HttpOnly
+            </pre>
+            <p><strong>Вывод:</strong> Хорошая защита критичных cookies (HttpOnly). Аналитические cookies менее защищены.</p>
+        </div>
+        
+        <div class="section">
+            <h3>3. Amazon</h3>
+            <pre>
+- session-id: идентификатор сессии, Secure, HttpOnly
+- ubid-main: идентификатор пользователя, Secure, HttpOnly
+- session-token: токен аутентификации, Secure, HttpOnly
+            </pre>
+            <p><strong>Вывод:</strong> Все критичные cookies защищены. Хороший пример безопасности.</p>
+        </div>
+    </div>
+    
+    <!-- Безопасная авторизация -->
+    <div id="auth" class="tabcontent">
+        <h2>Демо: безопасная авторизация</h2>
+        
+        <div class="section">
+            <form id="secureAuthForm">
+                <div class="form-group">
+                    <label for="authEmail">Email:</label>
+                    <input type="email" id="authEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="authPassword">Пароль:</label>
+                    <input type="password" id="authPassword" required>
+                </div>
+                <button type="submit">Войти</button>
+            </form>
+            
+            <div id="authStatus" style="margin-top: 15px;"></div>
+            
+            <h3 style="margin-top: 20px;">Технические детали:</h3>
+            <pre>
+1. Используется HttpOnly cookie для токена
+2. Content Security Policy (CSP) ограничивает источники скриптов
+3. Все передаваемые данные должны шифроваться (HTTPS)
+4. Cookie установлены с флагами Secure и SameSite
+            </pre>
+        </div>
+    </div>
+    
+    <!-- Миграция с cookies на localStorage -->
+    <div id="migration" class="tabcontent">
+        <h2>Миграция с cookies на localStorage</h2>
+        
+        <div class="section">
+            <h3>Исходный вариант (cookies):</h3>
+            <pre>
+function setUserCookie(userId) {
+    document.cookie = `user_id=${userId}; max-age=3600; path=/`;
+}
+
+function getUserCookie() {
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'user_id') return value;
+    }
+    return null;
+}
+            </pre>
+            
+            <h3>После миграции (localStorage):</h3>
+            <pre>
+function setUserStorage(userId) {
+    localStorage.setItem('user_id', userId);
+}
+
+function getUserStorage() {
+    return localStorage.getItem('user_id');
+}
+            </pre>
+            
+            <button onclick="testPerformance()">Сравнить производительность</button>
+            <div id="performanceResult" class="performance-result"></div>
+            
+            <h3>Плюсы и минусы:</h3>
+            <p><strong>localStorage:</strong> Больший объем (5MB vs 4KB), быстрее доступ, не отправляется на сервер.</p>
+            <p><strong>Cookies:</strong> Доступны на сервере, можно установить срок жизни, HttpOnly защита.</p>
+        </div>
+    </div>
+    
+    <!-- Гибридное хранилище -->
+    <div id="hybrid" class="tabcontent">
+        <h2>Гибридная система хранения данных</h2>
+        
+        <div class="section">
+            <h3>Демонстрация работы:</h3>
+            
+            <div class="form-group">
+                <label for="uiTheme">Тема интерфейса:</label>
+                <select id="uiTheme">
+                    <option value="light">Светлая</option>
+                    <option value="dark">Темная</option>
+                </select>
+                <button onclick="saveUiSettings()">Сохранить настройки</button>
+            </div>
+            
+            <div class="form-group">
+                <label for="tempData">Временные данные:</label>
+                <input type="text" id="tempData" placeholder="Введите временные данные">
+                <button onclick="saveTempData()">Сохранить временно</button>
+            </div>
+            
+            <button onclick="simulateLogin()">Симулировать вход (установить токен)</button>
+            
+            <h3 style="margin-top: 20px;">Текущее состояние хранилищ:</h3>
+            <pre id="storageState"></pre>
+            
+            <h3>Схема хранения:</h3>
+            <pre>
+1. <strong>HttpOnly Cookie</strong>: Токен аутентификации (защищен от XSS)
+2. <strong>localStorage</strong>: Настройки интерфейса (тема, размер шрифта)
+3. <strong>sessionStorage</strong>: Временные данные (форма, состояние UI)
+            </pre>
+        </div>
+    </div>
+
+    <script>
+        // Функции для работы с табами
+        function openTab(evt, tabName) {
+            const tabcontents = document.getElementsByClassName("tabcontent");
+            for (let i = 0; i < tabcontents.length; i++) {
+                tabcontents[i].classList.remove("visible");
+            }
+            
+            const tablinks = document.getElementsByClassName("tablinks");
+            for (let i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            
+            document.getElementById(tabName).classList.add("visible");
+            evt.currentTarget.className += " active";
+            
+            // Обновляем состояние хранилищ при переключении на гибридную вкладку
+            if (tabName === 'hybrid') {
+                updateStorageState();
+            }
+        }
+        
+        // Безопасная авторизация
+        document.getElementById('secureAuthForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            
+            // Эмуляция запроса к серверу
+            setTimeout(() => {
+                // В реальном приложении сервер должен установить HttpOnly cookie
+                document.cookie = `auth_token=emulated_token; Secure; HttpOnly; SameSite=Strict; path=/`;
+                document.getElementById('authStatus').innerHTML = 
+                    '<p style="color: green;">Успешный вход! HttpOnly cookie установлен.</p>' +
+                    '<p>Попробуйте получить токен через JavaScript: <span id="tokenTest"></span></p>';
+                
+                // Попытка прочитать токен (должна завершиться неудачей из-за HttpOnly)
+                try {
+                    const token = document.cookie.split('; ')
+                        .find(row => row.startsWith('auth_token='))
+                        ?.split('=')[1];
+                    document.getElementById('tokenTest').textContent = 
+                        token ? 'Уязвимость!' : 'Токен недоступен (HttpOnly работает)';
+                } catch {
+                    document.getElementById('tokenTest').textContent = 'Токен недоступен (HttpOnly работает)';
+                }
+            }, 500);
+        });
+        
+        // Миграция с cookies на localStorage
+        function testPerformance() {
+            const iterations = 10000;
+            let result = `Тест производительности (${iterations} итераций):\n`;
+            
+            // Тест cookies
+            let start = performance.now();
+            for (let i = 0; i < iterations; i++) {
+                document.cookie = `test_cookie=${i}`;
+                const value = document.cookie.split('; ')
+                    .find(row => row.startsWith('test_cookie='))
+                    ?.split('=')[1];
+            }
+            let duration = (performance.now() - start).toFixed(2);
+            result += `Cookies: ${duration} ms\n`;
+            
+            // Тест localStorage
+            start = performance.now();
+            for (let i = 0; i < iterations; i++) {
+                localStorage.setItem('test_storage', i);
+                const value = localStorage.getItem('test_storage');
+            }
+            duration = (performance.now() - start).toFixed(2);
+            result += `localStorage: ${duration} ms\n`;
+            
+            document.getElementById('performanceResult').textContent = result;
+        }
+        
+        // Гибридное хранилище
+        function saveUiSettings() {
+            const theme = document.getElementById('uiTheme').value;
+            localStorage.setItem('ui_theme', theme);
+            updateStorageState();
+            alert('Настройки сохранены в localStorage!');
+        }
+        
+        function saveTempData() {
+            const data = document.getElementById('tempData').value;
+            sessionStorage.setItem('temp_data', data);
+            updateStorageState();
+            alert('Данные сохранены в sessionStorage!');
+        }
+        
+        function simulateLogin() {
+            // Эмуляция установки HttpOnly cookie сервером
+            document.cookie = `auth_token=emulated_hybrid_token; Secure; HttpOnly; SameSite=Strict; path=/`;
+            updateStorageState();
+            alert('Токен аутентификации установлен в HttpOnly cookie!');
+        }
+        
+        function updateStorageState() {
+            const authCookie = document.cookie.split('; ')
+                .find(row => row.startsWith('auth_token='))
+                ?.split('=')[1] || 'не установлен';
+            
+            const storageState = `
+Cookies (auth_token): ${authCookie}
+
+localStorage:
+- ui_theme: ${localStorage.getItem('ui_theme') || 'не установлено'}
+
+sessionStorage:
+- temp_data: ${sessionStorage.getItem('temp_data') || 'не установлено'}
+            `;
+            
+            document.getElementById('storageState').textContent = storageState;
+        }
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStorageState();
+        });
+    </script>
+</body>
+</html>

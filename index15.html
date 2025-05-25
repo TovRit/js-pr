@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Комплексный пример работы с формами</title>
+    <style>
+        /* Общие стили */
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        
+        section {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input[type="text"],
+        input[type="password"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="date"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        
+        button {
+            padding: 10px 15px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        .error {
+            color: #e74c3c;
+            font-size: 0.8em;
+        }
+        
+        .radio-group, .checkbox-group {
+            margin: 10px 0;
+        }
+        
+        .radio-group label, .checkbox-group label {
+            display: inline-block;
+            margin-right: 15px;
+            font-weight: normal;
+        }
+        
+        /* Стили для конструктора форм */
+        #form-builder {
+            background: #ecf0f1;
+        }
+        
+        #form-preview {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px dashed #7f8c8d;
+            background: white;
+        }
+        
+        .form-field {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+            background: white;
+            position: relative;
+        }
+        
+        .remove-btn {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            font-size: 14px;
+            line-height: 25px;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        /* Стили для многошаговой формы */
+        .progress-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            counter-reset: step;
+        }
+        
+        .progress-step {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            background: #f3f3f3;
+            position: relative;
+            counter-increment: step;
+        }
+        
+        .progress-step::before {
+            content: counter(step);
+            display: inline-block;
+            width: 25px;
+            height: 25px;
+            line-height: 25px;
+            text-align: center;
+            background: #bdc3c7;
+            color: white;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .progress-step.active {
+            background: #eaf2f8;
+        }
+        
+        .progress-step.active::before {
+            background: #3498db;
+        }
+        
+        .form-step {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+        }
+        
+        .form-step.active {
+            display: block;
+        }
+        
+        .form-navigation {
+            margin-top: 20px;
+            text-align: right;
+        }
+        
+        .prev-btn {
+            background: #95a5a6;
+        }
+        
+        .prev-btn:hover {
+            background: #7f8c8d;
+        }
+        
+        .submit-btn {
+            background: #2ecc71;
+        }
+        
+        .submit-btn:hover {
+            background: #27ae60;
+        }
+        
+        /* Стили для формы с превью изображения */
+        #avatar-preview {
+            margin: 10px 0;
+        }
+        
+        #preview-image {
+            max-width: 200px;
+            max-height: 200px;
+            display: none;
+            border: 1px solid #ddd;
+            padding: 5px;
+            background: white;
+        }
+        
+        /* Стили для HTML-кода */
+        #html-output {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: #2c3e50;
+            color: #ecf0f1;
+            font-family: monospace;
+            white-space: pre;
+            overflow-x: auto;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Комплексный пример работы с формами</h1>
+    
+    <!-- 1. Динамический конструктор форм -->
+    <section id="form-builder">
+        <h2>1. Динамический конструктор форм</h2>
+        <div class="form-group">
+            <select id="field-type">
+                <option value="text">Текстовое поле</option>
+                <option value="number">Числовое поле</option>
+                <option value="select">Выпадающий список</option>
+                <option value="checkbox">Чекбокс</option>
+                <option value="textarea">Текстовая область</option>
+            </select>
+            <button id="add-field-btn">Добавить поле</button>
+        </div>
+        
+        <div id="form-preview"></div>
+        
+        <button id="generate-code-btn">Сгенерировать HTML</button>
+        <div id="html-output"></div>
+    </section>
+    
+    <!-- 2. Многошаговая форма регистрации -->
+    <section id="multi-step-form">
+        <h2>2. Многошаговая форма регистрации</h2>
+        <div class="progress-bar">
+            <div class="progress-step active" data-step="1">Личные данные</div>
+            <div class="progress-step" data-step="2">Контакты</div>
+            <div class="progress-step" data-step="3">Настройки</div>
+        </div>
+        
+        <form id="registration-form">
+            <!-- Шаг 1 -->
+            <div class="form-step active" data-step="1">
+                <div class="form-group">
+                    <label for="first-name">Имя:</label>
+                    <input type="text" id="first-name" name="firstName" required>
+                    <span class="error" id="first-name-error"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="last-name">Фамилия:</label>
+                    <input type="text" id="last-name" name="lastName" required>
+                    <span class="error" id="last-name-error"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="birth-date">Дата рождения:</label>
+                    <input type="date" id="birth-date" name="birthDate" required>
+                    <span class="error" id="birth-date-error"></span>
+                </div>
+                
+                <div class="form-navigation">
+                    <button type="button" class="next-btn">Далее</button>
+                </div>
+            </div>
+            
+            <!-- Шаг 2 -->
+            <div class="form-step" data-step="2">
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required>
+                    <span class="error" id="email-error"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Телефон:</label>
+                    <input type="tel" id="phone" name="phone" required>
+                    <span class="error" id="phone-error"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="address">Адрес:</label>
+                    <input type="text" id="address" name="address" required>
+                    <span class="error" id="address-error"></span>
+                </div>
+                
+                <div class="form-navigation">
+                    <button type="button" class="prev-btn">Назад</button>
+                    <button type="button" class="next-btn">Далее</button>
+                </div>
+            </div>
+            
+            <!-- Шаг 3 -->
+            <div class="form-step" data-step="3">
+                <div class="form-group">
+                    <label>Язык интерфейса:</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="language" value="ru" checked> Русский</label>
+                        <label><input type="radio" name="language" value="en"> English</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Уведомления:</label>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" name="notifications" value="email" checked> Email</label>
+                        <label><input type="checkbox" name="notifications" value="sms"> SMS</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="theme">Тема:</label>
+                    <select id="theme" name="theme">
+                        <option value="light">Светлая</option>
+                        <option value="dark">Темная</option>
+                    </select>
+                </div>
+                
+                <div class="form-navigation">
+                    <button type="button" class="prev-btn">Назад</button>
+                    <button type="submit" class="submit-btn">Зарегистрироваться</button>
+                </div>
+            </div>
+        </form>
+    </section>
+    
+    <!-- 3. Форма с динамической зависимостью полей -->
+    <section id="location-form-section">
+        <h2>3. Форма с динамической зависимостью полей</h2>
+        <form id="location-form">
+            <div class="form-group">
+                <label for="country">Страна:</label>
+                <select id="country" name="country" required>
+                    <option value="">Выберите страну</option>
+                    <option value="ru">Россия</option>
+                    <option value="us">США</option>
+                    <option value="de">Германия</option>
+                    <option value="jp">Япония</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="city">Город:</label>
+                <select id="city" name="city" required disabled>
+                    <option value="">Сначала выберите страну</option>
+                </select>
+            </div>
+        </form>
+    </section>
+    
+    <!-- 4. Форма с превью загружаемого изображения -->
+    <section id="avatar-form-section">
+        <h2>4. Форма с превью загружаемого изображения</h2>
+        <form id="avatar-form">
+            <div class="form-group">
+                <label for="avatar">Аватар:</label>
+                <input type="file" id="avatar" name="avatar" accept="image/*" required>
+                <span class="error" id="avatar-error"></span>
+            </div>
+            
+            <div id="avatar-preview">
+                <p>Превью:</p>
+                <img id="preview-image" src="#" alt="Превью аватара">
+            </div>
+            
+            <button type="submit">Сохранить</button>
+        </form>
+    </section>
+
+    <script>
+        // 1. Динамический конструктор форм
+        document.addEventListener('DOMContentLoaded', function() {
+            let fieldCounter = 0;
+            
+            document.getElementById('add-field-btn').addEventListener('click', function() {
+                const fieldType = document.getElementById('field-type').value;
+                const formPreview = document.getElementById('form-preview');
+                const fieldId = `field-${++fieldCounter}`;
+                
+                const fieldContainer = document.createElement('div');
+                fieldContainer.className = 'form-field';
+                fieldContainer.dataset.type = fieldType;
+                
+                const label = document.createElement('label');
+                label.textContent = `Поле ${fieldCounter}:`;
+                label.htmlFor = fieldId;
+                
+                let fieldElement;
+                
+                switch(fieldType) {
+                    case 'text':
+                    case 'number':
+                        fieldElement = document.createElement('input');
+                        fieldElement.type = fieldType;
+                        fieldElement.id = fieldId;
+                        fieldElement.name = `field_${fieldCounter}`;
+                        break;
+                        
+                    case 'select':
+                        fieldElement = document.createElement('select');
+                        fieldElement.id = fieldId;
+                        fieldElement.name = `field_${fieldCounter}`;
+                        
+                        const option1 = document.createElement('option');
+                        option1.value = 'option1';
+                        option1.textContent = 'Вариант 1';
+                        
+                        const option2 = document.createElement('option');
+                        option2.value = 'option2';
+                        option2.textContent = 'Вариант 2';
+                        
+                        fieldElement.appendChild(option1);
+                        fieldElement.appendChild(option2);
+                        break;
+                        
+                    case 'checkbox':
+                        fieldElement = document.createElement('input');
+                        fieldElement.type = 'checkbox';
+                        fieldElement.id = fieldId;
+                        fieldElement.name = `field_${fieldCounter}`;
+                        
+                        // Для чекбокса помещаем label после input
+                        label.htmlFor = fieldId;
+                        label.textContent = ' Чекбокс ' + fieldCounter;
+                        break;
+                        
+                    case 'textarea':
+                        fieldElement = document.createElement('textarea');
+                        fieldElement.id = fieldId;
+                        fieldElement.name = `field_${fieldCounter}`;
+                        fieldElement.rows = 3;
+                        break;
+                }
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'remove-btn';
+                removeBtn.textContent = '×';
+                removeBtn.addEventListener('click', function() {
+                    formPreview.removeChild(fieldContainer);
+                });
+                
+                fieldContainer.appendChild(label);
+                if (fieldType !== 'checkbox') {
+                    fieldContainer.appendChild(fieldElement);
+                } else {
+                    fieldContainer.insertBefore(fieldElement, label);
+                }
+                fieldContainer.appendChild(removeBtn);
+                
+                formPreview.appendChild(fieldContainer);
+            });
+            
+            document.getElementById('generate-code-btn').addEventListener('click', function() {
+                const formPreview = document.getElementById('form-preview');
+                const htmlOutput = document.getElementById('html-output');
+                
+                let htmlCode = '<form>\n';
+                
+                Array.from(formPreview.children).forEach(field => {
+                    const fieldType = field.dataset.type;
+                    
+                    if (fieldType === 'checkbox') {
+                        const input = field.querySelector('input');
+                        const label = field.querySelector('label');
+                        htmlCode += `  <div>\n    <input type="checkbox" id="${input.id}" name="${input.name}">\n    <label for="${input.id}">${label.textContent.trim()}</label>\n  </div>\n`;
+                    } else {
+                        const label = field.querySelector('label');
+                        const element = field.querySelector('input, select, textarea');
+                        
+                        htmlCode += `  <div>\n    <label for="${element.id}">${label.textContent.replace(':', '')}</label>\n    `;
+                        
+                        if (fieldType === 'select') {
+                            const options = Array.from(element.querySelectorAll('option')).map(opt => 
+                                `      <option value="${opt.value}">${opt.textContent}</option>`
+                            ).join('\n');
+                            htmlCode += `<select id="${element.id}" name="${element.name}">\n${options}\n    </select>\n  </div>\n`;
+                        } else {
+                            const tag = fieldType === 'textarea' ? 'textarea' : 'input';
+                            const typeAttr = fieldType === 'textarea' ? '' : ` type="${fieldType}"`;
+                            const additionalAttrs = fieldType === 'textarea' ? ' rows="3"' : '';
+                            
+                            htmlCode += `<${tag} id="${element.id}" name="${element.name}"${typeAttr}${additionalAttrs}>\n`;
+                            if (fieldType === 'textarea') htmlCode += `    </textarea>\n`;
+                            htmlCode += `  </div>\n`;
+                        }
+                    }
+                });
+                
+                htmlCode += '  <button type="submit">Отправить</button>\n</form>';
+                
+                htmlOutput.textContent = htmlCode;
+                htmlOutput.style.display = 'block';
+            });
+            
+            // 2. Многошаговая форма регистрации
+            const form = document.getElementById('registration-form');
+            const steps = Array.from(document.querySelectorAll('.form-step'));
+            const progressSteps = Array.from(document.querySelectorAll('.progress-step'));
+            let currentStep = 0;
+            
+            // Инициализация
+            updateButtons();
+            
+            // Навигация
+            document.querySelectorAll('.next-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (validateStep(currentStep)) {
+                        goToStep(currentStep + 1);
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.prev-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    goToStep(currentStep - 1);
+                });
+            });
+            
+            // Отправка формы
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                if (validateStep(currentStep)) {
+                    alert('Форма успешно отправлена!');
+                    // Здесь можно добавить отправку данных на сервер
+                    console.log('Данные формы:', {
+                        firstName: form.elements.firstName.value,
+                        lastName: form.elements.lastName.value,
+                        birthDate: form.elements.birthDate.value,
+                        email: form.elements.email.value,
+                        phone: form.elements.phone.value,
+                        address: form.elements.address.value,
+                        language: form.elements.language.value,
+                        notifications: Array.from(form.elements.notifications)
+                            .filter(checkbox => checkbox.checked)
+                            .map(checkbox => checkbox.value),
+                        theme: form.elements.theme.value
+                    });
+                }
+            });
+            
+            function goToStep(step) {
+                if (step < 0 || step >= steps.length) return;
+                
+                steps[currentStep].classList.remove('active');
+                progressSteps[currentStep].classList.remove('active');
+                
+                currentStep = step;
+                
+                steps[currentStep].classList.add('active');
+                progressSteps[currentStep].classList.add('active');
+                
+                updateButtons();
+            }
+            
+            function updateButtons() {
+                const prevBtns = document.querySelectorAll('.prev-btn');
+                const nextBtns = document.querySelectorAll('.next-btn');
+                
+                prevBtns.forEach(btn => {
+                    btn.style.display = currentStep === 0 ? 'none' : 'inline-block';
+                });
+                
+                nextBtns.forEach(btn => {
+                    btn.style.display = currentStep === steps.length - 1 ? 'none' : 'inline-block';
+                });
+            }
+            
+            function validateStep(step) {
+                let isValid = true;
+                
+                if (step === 0) {
+                    // Валидация личных данных
+                    const firstName = form.elements.firstName.value.trim();
+                    const lastName = form.elements.lastName.value.trim();
+                    const birthDate = form.elements.birthDate.value;
+                    
+                    if (firstName === '') {
+                        document.getElementById('first-name-error').textContent = 'Введите имя';
+                        isValid = false;
+                    } else {
+                        document.getElementById('first-name-error').textContent = '';
+                    }
+                    
+                    if (lastName === '') {
+                        document.getElementById('last-name-error').textContent = 'Введите фамилию';
+                        isValid = false;
+                    } else {
+                        document.getElementById('last-name-error').textContent = '';
+                    }
+                    
+                    if (birthDate === '') {
+                        document.getElementById('birth-date-error').textContent = 'Введите дату рождения';
+                        isValid = false;
+                    } else {
+                        document.getElementById('birth-date-error').textContent = '';
+                    }
+                } else if (step === 1) {
+                    // Валидация контактов
+                    const email = form.elements.email.value.trim();
+                    const phone = form.elements.phone.value.trim();
+                    const address = form.elements.address.value.trim();
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    const phoneRegex = /^\+?[\d\s\-\(\)]{10,}$/;
+                    
+                    if (!emailRegex.test(email)) {
+                        document.getElementById('email-error').textContent = 'Введите корректный email';
+                        isValid = false;
+                    } else {
+                        document.getElementById('email-error').textContent = '';
+                    }
+                    
+                    if (!phoneRegex.test(phone)) {
+                        document.getElementById('phone-error').textContent = 'Введите корректный номер телефона';
+                        isValid = false;
+                    } else {
+                        document.getElementById('phone-error').textContent = '';
+                    }
+                    
+                    if (address === '') {
+                        document.getElementById('address-error').textContent = 'Введите адрес';
+                        isValid = false;
+                    } else {
+                        document.getElementById('address-error').textContent = '';
+                    }
+                }
+                
+                return isValid;
+            }
+            
+            // 3. Форма с динамической зависимостью полей
+            const countrySelect = document.getElementById('country');
+            const citySelect = document.getElementById('city');
+            const citiesCache = {};
+            
+            // Данные городов (в реальном приложении можно загружать с сервера)
+            const citiesData = {
+                ru: ['Москва', 'Санкт-Петербург', 'Новосибирск', 'Екатеринбург'],
+                us: ['Нью-Йорк', 'Лос-Анджелес', 'Чикаго', 'Хьюстон'],
+                de: ['Берлин', 'Мюнхен', 'Гамбург', 'Кёльн'],
+                jp: ['Токио', 'Осака', 'Киото', 'Иокогама']
+            };
+            
+            countrySelect.addEventListener('change', function() {
+                const countryCode = this.value;
+                
+                if (!countryCode) {
+                    citySelect.disabled = true;
+                    citySelect.innerHTML = '<option value="">Сначала выберите страну</option>';
+                    return;
+                }
+                
+                // Проверяем кэш
+                if (citiesCache[countryCode]) {
+                    updateCities(citiesCache[countryCode]);
+                    return;
+                }
+                
+                // Имитация загрузки с сервера
+                citySelect.disabled = true;
+                citySelect.innerHTML = '<option value="">Загрузка городов...</option>';
+                
+                setTimeout(() => {
+                    const cities = citiesData[countryCode] || [];
+                    citiesCache[countryCode] = cities;
+                    updateCities(cities);
+                }, 500);
+            });
+            
+            function updateCities(cities) {
+                citySelect.innerHTML = '';
+                
+                if (cities.length === 0) {
+                    citySelect.innerHTML = '<option value="">Нет доступных городов</option>';
+                } else {
+                    cities.forEach(city => {
+                        const option = document.createElement('option');
+                        option.value = city.toLowerCase().replace(' ', '-');
+                        option.textContent = city;
+                        citySelect.appendChild(option);
+                    });
+                }
+                
+                citySelect.disabled = false;
+            }
+            
+            // 4. Форма с превью загружаемого изображения
+            const avatarInput = document.getElementById('avatar');
+            const avatarPreview = document.getElementById('avatar-preview');
+            const previewImage = document.getElementById('preview-image');
+            const avatarError = document.getElementById('avatar-error');
+            
+            // Сначала скроем превью
+            avatarPreview.style.display = 'none';
+            previewImage.style.display = 'none';
+            
+            avatarInput.addEventListener('change', function() {
+                const file = this.files[0];
+                
+                if (!file) {
+                    avatarPreview.style.display = 'none';
+                    previewImage.style.display = 'none';
+                    return;
+                }
+                
+                // Проверка типа файла
+                const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                if (!validTypes.includes(file.type)) {
+                    avatarError.textContent = 'Допустимые форматы: JPEG, PNG, GIF';
+                    avatarPreview.style.display = 'none';
+                    return;
+                }
+                
+                // Проверка размера файла (максимум 2MB)
+                if (file.size > 2 * 1024 * 1024) {
+                    avatarError.textContent = 'Максимальный размер файла - 2MB';
+                    avatarPreview.style.display = 'none';
+                    return;
+                }
+                
+                avatarError.textContent = '';
+                
+                // Превью изображения
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    previewImage.style.display = 'block';
+                    avatarPreview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            });
+            
+            document.getElementById('avatar-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (!avatarInput.files.length) {
+                    avatarError.textContent = 'Выберите файл';
+                    return;
+                }
+                
+                // Дополнительная валидация перед отправкой
+                const file = avatarInput.files[0];
+                
+                if (file.size > 2 * 1024 * 1024) {
+                    avatarError.textContent = 'Максимальный размер файла - 2MB';
+                    return;
+                }
+                
+                // Если все проверки пройдены
+                alert('Аватар успешно загружен!');
+                // Здесь можно добавить отправку формы на сервер
+            });
+        });
+    </script>
+</body>
+</html>

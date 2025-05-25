@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Медиа приложения</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .tab button {
+            background-color: inherit;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 12px 16px;
+            transition: 0.3s;
+            font-size: 16px;
+        }
+        .tab button:hover {
+            background-color: #ddd;
+        }
+        .tab button.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .tabcontent {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            background-color: white;
+        }
+        .visible {
+            display: block;
+        }
+        .player-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        input[type="range"] {
+            width: 150px;
+        }
+        .playlist {
+            margin-top: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .playlist-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        .playlist-item:hover {
+            background-color: #f9f9f9;
+        }
+        .playlist-item.active {
+            background-color: #e6f7e6;
+            font-weight: bold;
+        }
+        .video-container {
+            position: relative;
+            margin-bottom: 15px;
+        }
+        .video-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+            align-items: center;
+        }
+        .video-control-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .chat-container {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .video-box {
+            flex: 1;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .text-chat {
+            flex: 1;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            min-height: 200px;
+        }
+        .chat-input {
+            display: flex;
+            gap: 10px;
+        }
+        .chat-input input {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .interactive-video {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .choice-point {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: rgba(255, 255, 0, 0.7);
+            border-radius: 50%;
+            cursor: pointer;
+            transform: translate(-50%, -50%);
+        }
+        .choice-menu {
+            position: absolute;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 100;
+            display: none;
+        }
+        .choice-option {
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .choice-option:hover {
+            background-color: #f5f5f5;
+        }
+        .progress-save {
+            margin-top: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Медиа приложения</h1>
+        
+        <div class="tab">
+            <button class="tablinks active" onclick="openTab(event, 'audio')">Аудио-плеер</button>
+            <button class="tablinks" onclick="openTab(event, 'videoEditor')">Видео-редактор</button>
+            <button class="tablinks" onclick="openTab(event, 'videoChat')">Видео-чат</button>
+            <button class="tablinks" onclick="openTab(event, 'interactiveVideo')">Интерактивное видео</button>
+        </div>
+        
+        <!-- Аудио-плеер с плейлистом -->
+        <div id="audio" class="tabcontent visible">
+            <h2>Аудио-плеер с плейлистом</h2>
+            <div class="section">
+                <audio id="audioPlayer" controls></audio>
+                <div class="player-controls">
+                    <button id="prevBtn">Предыдущий</button>
+                    <button id="nextBtn">Следующий</button>
+                    <div class="video-control-group">
+                        <span>Громкость:</span>
+                        <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.7">
+                    </div>
+                </div>
+                
+                <div class="playlist" id="playlist">
+                    <div class="playlist-item" data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">SoundHelix Song 1</div>
+                    <div class="playlist-item" data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3">SoundHelix Song 2</div>
+                    <div class="playlist-item" data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3">SoundHelix Song 3</div>
+                    <div class="playlist-item" data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3">SoundHelix Song 4</div>
+                    <div class="playlist-item" data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3">SoundHelix Song 5</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Видео-редактор -->
+        <div id="videoEditor" class="tabcontent">
+            <h2>Видео-редактор</h2>
+            <div class="section">
+                <div class="video-container">
+                    <video id="editorVideo" width="100%" controls>
+                        <source src="https://samplelib.com/lib/preview/mp4/sample-5s.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="video-controls">
+                    <button id="speedDownBtn">Замедлить (0.5x)</button>
+                    <button id="speedNormalBtn">Нормально (1x)</button>
+                    <button id="speedUpBtn">Ускорить (2x)</button>
+                    <button id="screenshotBtn">Скриншот</button>
+                    <div class="video-control-group">
+                        <span>Громкость:</span>
+                        <input type="range" id="videoVolumeSlider" min="0" max="1" step="0.01" value="1">
+                    </div>
+                    <div class="video-control-group">
+                        <span>Яркость:</span>
+                        <input type="range" id="brightnessSlider" min="0" max="2" step="0.1" value="1">
+                    </div>
+                </div>
+                <div id="screenshotContainer" style="margin-top: 15px;"></div>
+            </div>
+        </div>
+        
+        <!-- Видео-чат -->
+        <div id="videoChat" class="tabcontent">
+            <h2>Видео-чат</h2>
+            <div class="section">
+                <div class="chat-container">
+                    <div class="video-box">
+                        <h3>Ваше видео</h3>
+                        <video id="localVideo" autoplay muted width="100%"></video>
+                        <div class="video-controls">
+                            <button id="toggleVideoBtn">Выключить камеру</button>
+                            <button id="toggleMicBtn">Выключить микрофон</button>
+                        </div>
+                    </div>
+                    <div class="video-box">
+                        <h3>Удаленный пользователь</h3>
+                        <video id="remoteVideo" autoplay width="100%"></video>
+                    </div>
+                </div>
+                <div class="chat-container">
+                    <div class="text-chat">
+                        <h3>Текстовый чат</h3>
+                        <div class="chat-messages" id="chatMessages"></div>
+                        <div class="chat-input">
+                            <input type="text" id="chatInput" placeholder="Введите сообщение...">
+                            <button id="sendMessageBtn">Отправить</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Интерактивное видео -->
+        <div id="interactiveVideo" class="tabcontent">
+            <h2>Интерактивное видео</h2>
+            <div class="section">
+                <div class="interactive-video">
+                    <video id="interactiveVideoPlayer" width="100%" controls>
+                        <source src="https://samplelib.com/lib/preview/mp4/sample-10s.mp4" type="video/mp4">
+                    </video>
+                    <div id="choicePointsContainer"></div>
+                    <div id="choiceMenu" class="choice-menu"></div>
+                </div>
+                <div class="video-controls">
+                    <button id="resetChoicesBtn">Сбросить выбор</button>
+                </div>
+                <div class="progress-save">
+                    <label for="saveName">Имя сохранения:</label>
+                    <input type="text" id="saveName" placeholder="Введите имя">
+                    <button id="saveProgressBtn">Сохранить прогресс</button>
+                    <button id="loadProgressBtn">Загрузить сохранение</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Функции для работы с табами
+        function openTab(evt, tabName) {
+            const tabcontents = document.getElementsByClassName("tabcontent");
+            for (let i = 0; i < tabcontents.length; i++) {
+                tabcontents[i].classList.remove("visible");
+            }
+            
+            const tablinks = document.getElementsByClassName("tablinks");
+            for (let i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            
+            document.getElementById(tabName).classList.add("visible");
+            evt.currentTarget.className += " active";
+            
+            // Останавливаем все медиа при переключении вкладок
+            if (tabName !== 'audio') {
+                document.getElementById('audioPlayer').pause();
+            }
+            if (tabName !== 'videoEditor') {
+                document.getElementById('editorVideo').pause();
+            }
+            if (tabName !== 'interactiveVideo') {
+                document.getElementById('interactiveVideoPlayer').pause();
+            }
+        }
+        
+        // 1. Аудио-плеер с плейлистом
+        const audioPlayer = document.getElementById('audioPlayer');
+        const playlistItems = document.querySelectorAll('.playlist-item');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const volumeSlider = document.getElementById('volumeSlider');
+        
+        let currentTrack = 0;
+        
+        // Загрузка сохраненной громкости
+        const savedVolume = localStorage.getItem('audioVolume');
+        if (savedVolume) {
+            audioPlayer.volume = parseFloat(savedVolume);
+            volumeSlider.value = savedVolume;
+        } else {
+            audioPlayer.volume = 0.7;
+        }
+        
+        // Воспроизведение трека
+        function playTrack(index) {
+            if (index >= 0 && index < playlistItems.length) {
+                currentTrack = index;
+                const trackSrc = playlistItems[index].getAttribute('data-src');
+                audioPlayer.src = trackSrc;
+                audioPlayer.play();
+                
+                // Обновляем активный элемент плейлиста
+                playlistItems.forEach(item => item.classList.remove('active'));
+                playlistItems[index].classList.add('active');
+            }
+        }
+        
+        // Обработчики событий
+        playlistItems.forEach((item, index) => {
+            item.addEventListener('click', () => playTrack(index));
+        });
+        
+        prevBtn.addEventListener('click', () => {
+            playTrack((currentTrack - 1 + playlistItems.length) % playlistItems.length);
+        });
+        
+        nextBtn.addEventListener('click', () => {
+            playTrack((currentTrack + 1) % playlistItems.length);
+        });
+        
+        volumeSlider.addEventListener('input', () => {
+            audioPlayer.volume = volumeSlider.value;
+            localStorage.setItem('audioVolume', volumeSlider.value);
+        });
+        
+        audioPlayer.addEventListener('ended', () => {
+            playTrack((currentTrack + 1) % playlistItems.length);
+        });
+        
+        // Автовоспроизведение первого трека
+        playTrack(0);
+        
+        // 2. Видео-редактор
+        const editorVideo = document.getElementById('editorVideo');
+        const speedDownBtn = document.getElementById('speedDownBtn');
+        const speedNormalBtn = document.getElementById('speedNormalBtn');
+        const speedUpBtn = document.getElementById('speedUpBtn');
+        const screenshotBtn = document.getElementById('screenshotBtn');
+        const videoVolumeSlider = document.getElementById('videoVolumeSlider');
+        const brightnessSlider = document.getElementById('brightnessSlider');
+        const screenshotContainer = document.getElementById('screenshotContainer');
+        
+        // Регулировка скорости
+        speedDownBtn.addEventListener('click', () => {
+            editorVideo.playbackRate = 0.5;
+        });
+        
+        speedNormalBtn.addEventListener('click', () => {
+            editorVideo.playbackRate = 1.0;
+        });
+        
+        speedUpBtn.addEventListener('click', () => {
+            editorVideo.playbackRate = 2.0;
+        });
+        
+        // Скриншот
+        screenshotBtn.addEventListener('click', () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = editorVideo.videoWidth;
+            canvas.height = editorVideo.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(editorVideo, 0, 0, canvas.width, canvas.height);
+            
+            const screenshot = new Image();
+            screenshot.src = canvas.toDataURL('image/png');
+            screenshot.style.maxWidth = '300px';
+            screenshot.style.margin = '5px';
+            
+            screenshotContainer.appendChild(screenshot);
+        });
+        
+        // Регулировка громкости
+        videoVolumeSlider.addEventListener('input', () => {
+            editorVideo.volume = videoVolumeSlider.value;
+        });
+        
+        // Регулировка яркости
+        brightnessSlider.addEventListener('input', () => {
+            editorVideo.style.filter = `brightness(${brightnessSlider.value})`;
+        });
+        
+        // 3. Видео-чат (эмуляция)
+        const localVideo = document.getElementById('localVideo');
+        const remoteVideo = document.getElementById('remoteVideo');
+        const toggleVideoBtn = document.getElementById('toggleVideoBtn');
+        const toggleMicBtn = document.getElementById('toggleMicBtn');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendMessageBtn = document.getElementById('sendMessageBtn');
+        
+        let videoEnabled = true;
+        let micEnabled = true;
+        
+        // Эмуляция видеопотока (в реальном приложении здесь будет getUserMedia)
+        localVideo.srcObject = new MediaStream();
+        remoteVideo.srcObject = new MediaStream();
+        
+        // Переключение камеры
+        toggleVideoBtn.addEventListener('click', () => {
+            videoEnabled = !videoEnabled;
+            toggleVideoBtn.textContent = videoEnabled ? 'Выключить камеру' : 'Включить камеру';
+            localVideo.srcObject.getVideoTracks().forEach(track => {
+                track.enabled = videoEnabled;
+            });
+        });
+        
+        // Переключение микрофона
+        toggleMicBtn.addEventListener('click', () => {
+            micEnabled = !micEnabled;
+            toggleMicBtn.textContent = micEnabled ? 'Выключить микрофон' : 'Включить микрофон';
+            localVideo.srcObject.getAudioTracks().forEach(track => {
+                track.enabled = micEnabled;
+            });
+        });
+        
+        // Текстовый чат
+        function addMessage(sender, message) {
+            const messageElement = document.createElement('div');
+            messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        sendMessageBtn.addEventListener('click', () => {
+            const message = chatInput.value.trim();
+            if (message) {
+                addMessage('Вы', message);
+                chatInput.value = '';
+                
+                // Эмуляция ответа
+                setTimeout(() => {
+                    addMessage('Собеседник', 'Это автоматический ответ на ваше сообщение: "' + message + '"');
+                }, 1000);
+            }
+        });
+        
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessageBtn.click();
+            }
+        });
+        
+        // 4. Интерактивное видео
+        const interactiveVideo = document.getElementById('interactiveVideoPlayer');
+        const choicePointsContainer = document.getElementById('choicePointsContainer');
+        const choiceMenu = document.getElementById('choiceMenu');
+        const resetChoicesBtn = document.getElementById('resetChoicesBtn');
+        const saveNameInput = document.getElementById('saveName');
+        const saveProgressBtn = document.getElementById('saveProgressBtn');
+        const loadProgressBtn = document.getElementById('loadProgressBtn');
+        
+        // Точки выбора (временные метки в секундах)
+        const choicePoints = [
+            { time: 3, choices: ["Вариант 1", "Вариант 2"], positions: [{x: 30, y: 30}, {x: 70, y: 30}] },
+            { time: 6, choices: ["Путь A", "Путь B"], positions: [{x: 50, y: 50}, {x: 50, y: 70}] }
+        ];
+        
+        // Отслеживание времени для показа точек выбора
+        interactiveVideo.addEventListener('timeupdate', () => {
+            const currentTime = interactiveVideo.currentTime;
+            
+            // Показываем точки выбора, если достигнуто нужное время
+            choicePoints.forEach(point => {
+                if (currentTime >= point.time && currentTime < point.time + 0.5) {
+                    showChoicePoint(point);
+                }
+            });
+        });
+        
+        // Показать точку выбора
+        function showChoicePoint(point) {
+            // Очищаем предыдущие точки
+            choicePointsContainer.innerHTML = '';
+            
+            // Создаем точки выбора
+            point.choices.forEach((choice, index) => {
+                const choicePoint = document.createElement('div');
+                choicePoint.className = 'choice-point';
+                choicePoint.style.left = `${point.positions[index].x}%`;
+                choicePoint.style.top = `${point.positions[index].y}%`;
+                choicePoint.dataset.choice = choice;
+                choicePoint.dataset.time = point.time;
+                
+                choicePoint.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showChoiceMenu(choice, point.choices, e.clientX, e.clientY);
+                });
+                
+                choicePointsContainer.appendChild(choicePoint);
+            });
+            
+            // Автоматическое скрытие через 0.5 секунды
+            setTimeout(() => {
+                if (interactiveVideo.currentTime >= point.time + 0.5) {
+                    choicePointsContainer.innerHTML = '';
+                }
+            }, 500);
+        }
+        
+        // Показать меню выбора
+        function showChoiceMenu(selectedChoice, choices, x, y) {
+            choiceMenu.innerHTML = '';
+            choiceMenu.style.display = 'block';
+            choiceMenu.style.left = `${x}px`;
+            choiceMenu.style.top = `${y}px`;
+            
+            choices.forEach(choice => {
+                const option = document.createElement('div');
+                option.className = 'choice-option';
+                option.textContent = choice;
+                
+                if (choice === selectedChoice) {
+                    option.style.fontWeight = 'bold';
+                }
+                
+                option.addEventListener('click', () => {
+                    alert(`Вы выбрали: ${choice}`);
+                    choiceMenu.style.display = 'none';
+                    choicePointsContainer.innerHTML = '';
+                    
+                    // Сохраняем выбор пользователя
+                    saveChoice(choice);
+                });
+                
+                choiceMenu.appendChild(option);
+            });
+        }
+        
+        // Скрыть меню при клике вне его
+        document.addEventListener('click', () => {
+            choiceMenu.style.display = 'none';
+        });
+        
+        // Сохранить выбор пользователя
+        function saveChoice(choice) {
+            const choices = JSON.parse(localStorage.getItem('videoChoices') || '{}');
+            choices[interactiveVideo.currentTime] = choice;
+            localStorage.setItem('videoChoices', JSON.stringify(choices));
+        }
+        
+        // Сброс выбора
+        resetChoicesBtn.addEventListener('click', () => {
+            localStorage.removeItem('videoChoices');
+            alert('Все выборы сброшены');
+        });
+        
+        // Сохранение прогресса
+        saveProgressBtn.addEventListener('click', () => {
+            const saveName = saveNameInput.value.trim();
+            if (saveName) {
+                const saveData = {
+                    time: interactiveVideo.currentTime,
+                    choices: JSON.parse(localStorage.getItem('videoChoices') || '{}')
+                };
+                localStorage.setItem(`videoSave_${saveName}`, JSON.stringify(saveData));
+                alert(`Прогресс сохранен как "${saveName}"`);
+            } else {
+                alert('Введите имя сохранения');
+            }
+        });
+        
+        // Загрузка прогресса
+        loadProgressBtn.addEventListener('click', () => {
+            const saveName = saveNameInput.value.trim();
+            if (saveName) {
+                const saveData = localStorage.getItem(`videoSave_${saveName}`);
+                if (saveData) {
+                    const parsedData = JSON.parse(saveData);
+                    interactiveVideo.currentTime = parsedData.time;
+                    localStorage.setItem('videoChoices', JSON.stringify(parsedData.choices));
+                    alert(`Прогресс "${saveName}" загружен`);
+                } else {
+                    alert(`Сохранение "${saveName}" не найдено`);
+                }
+            } else {
+                alert('Введите имя сохранения');
+            }
+        });
+    </script>
+</body>
+</html>

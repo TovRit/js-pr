@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Формы с валидацией</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        .section {
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .error {
+            color: #e74c3c;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        .valid {
+            border-color: #2ecc71;
+        }
+        .invalid {
+            border-color: #e74c3c;
+        }
+        .password-strength {
+            height: 5px;
+            background-color: #eee;
+            margin-top: 5px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .password-strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s, background-color 0.3s;
+        }
+        .step {
+            display: none;
+        }
+        .step.active {
+            display: block;
+        }
+        .step-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 10px 16px;
+            transition: 0.3s;
+            color: #333;
+        }
+        .tab button:hover {
+            background-color: #ddd;
+        }
+        .tab button.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tabcontent {
+            display: none;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+        }
+        .visible {
+            display: block;
+        }
+        .promo-status {
+            margin-top: 5px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Формы с валидацией</h1>
+    
+    <div class="tab">
+        <button class="tablinks active" onclick="openTab(event, 'registration')">Форма регистрации</button>
+        <button class="tablinks" onclick="openTab(event, 'order')">Форма заказа</button>
+        <button class="tablinks" onclick="openTab(event, 'multistep')">Многошаговая форма</button>
+        <button class="tablinks" onclick="openTab(event, 'custom')">Кастомные валидаторы</button>
+    </div>
+    
+    <!-- Форма регистрации -->
+    <div id="registration" class="tabcontent visible">
+        <h2>Форма регистрации</h2>
+        
+        <form id="registrationForm" class="section">
+            <div class="form-group">
+                <label for="regName">Имя:</label>
+                <input type="text" id="regName" placeholder="Введите ваше имя">
+                <div id="regNameError" class="error"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="regEmail">Email:</label>
+                <input type="email" id="regEmail" placeholder="Введите ваш email">
+                <div id="regEmailError" class="error"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="regPassword">Пароль:</label>
+                <input type="password" id="regPassword" placeholder="Придумайте пароль">
+                <div class="password-strength">
+                    <div id="passwordStrengthBar" class="password-strength-bar"></div>
+                </div>
+                <div id="regPasswordError" class="error"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="regConfirmPassword">Подтверждение пароля:</label>
+                <input type="password" id="regConfirmPassword" placeholder="Повторите пароль">
+                <div id="regConfirmPasswordError" class="error"></div>
+            </div>
+            
+            <button type="submit">Зарегистрироваться</button>
+        </form>
+    </div>
+    
+    <!-- Форма заказа -->
+    <div id="order" class="tabcontent">
+        <h2>Форма заказа</h2>
+        
+        <form id="orderForm" class="section">
+            <div class="form-group">
+                <label for="product">Товар:</label>
+                <select id="product">
+                    <option value="1">Ноутбук - 50 000 руб.</option>
+                    <option value="2">Смартфон - 30 000 руб.</option>
+                    <option value="3">Наушники - 5 000 руб.</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="quantity">Количество:</label>
+                <input type="number" id="quantity" min="1" max="10" value="1">
+                <div id="quantityError" class="error"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="promoCode">Промокод (необязательно):</label>
+                <input type="text" id="promoCode" placeholder="Введите промокод">
+                <div id="promoCodeStatus" class="promo-status"></div>
+                <div id="promoCodeError" class="error"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="orderEmail">Email для чека:</label>
+                <input type="email" id="orderEmail" placeholder="Введите email для получения чека">
+                <div id="orderEmailError" class="error"></div>
+            </div>
+            
+            <button type="submit">Оформить заказ</button>
+        </form>
+    </div>
+    
+    <!-- Многошаговая форма -->
+    <div id="multistep" class="tabcontent">
+        <h2>Многошаговая форма</h2>
+        
+        <form id="multistepForm" class="section">
+            <div id="step1" class="step active">
+                <h3>Шаг 1: Личные данные</h3>
+                
+                <div class="form-group">
+                    <label for="msName">ФИО:</label>
+                    <input type="text" id="msName" placeholder="Введите ваше ФИО">
+                    <div id="msNameError" class="error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="msPhone">Телефон:</label>
+                    <input type="tel" id="msPhone" placeholder="+7 (XXX) XXX-XX-XX">
+                    <div id="msPhoneError" class="error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="msEmail">Email:</label>
+                    <input type="email" id="msEmail" placeholder="Введите ваш email">
+                    <div id="msEmailError" class="error"></div>
+                </div>
+                
+                <div class="step-navigation">
+                    <button type="button" disabled>Назад</button>
+                    <button type="button" onclick="nextStep(1)">Далее</button>
+                </div>
+            </div>
+            
+            <div id="step2" class="step">
+                <h3>Шаг 2: Адрес доставки</h3>
+                
+                <div class="form-group">
+                    <label for="msCountry">Страна:</label>
+                    <input type="text" id="msCountry" placeholder="Введите страну">
+                    <div id="msCountryError" class="error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="msCity">Город:</label>
+                    <input type="text" id="msCity" placeholder="Введите город">
+                    <div id="msCityError" class="error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="msAddress">Адрес:</label>
+                    <textarea id="msAddress" rows="3" placeholder="Введите полный адрес"></textarea>
+                    <div id="msAddressError" class="error"></div>
+                </div>
+                
+                <div class="step-navigation">
+                    <button type="button" onclick="prevStep(2)">Назад</button>
+                    <button type="button" onclick="nextStep(2)">Далее</button>
+                </div>
+            </div>
+            
+            <div id="step3" class="step">
+                <h3>Шаг 3: Оплата</h3>
+                
+                <div class="form-group">
+                    <label>Способ оплаты:</label>
+                    <div>
+                        <input type="radio" id="paymentCard" name="payment" value="card" checked>
+                        <label for="paymentCard" style="display: inline;">Банковская карта</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="paymentCash" name="payment" value="cash">
+                        <label for="paymentCash" style="display: inline;">Наличные при получении</label>
+                    </div>
+                </div>
+                
+                <div id="cardFields">
+                    <div class="form-group">
+                        <label for="cardNumber">Номер карты:</label>
+                        <input type="text" id="cardNumber" placeholder="XXXX XXXX XXXX XXXX">
+                        <div id="cardNumberError" class="error"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="cardExpiry">Срок действия:</label>
+                        <input type="text" id="cardExpiry" placeholder="MM/YY">
+                        <div id="cardExpiryError" class="error"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="cardCvc">CVC:</label>
+                        <input type="text" id="cardCvc" placeholder="CVC" maxlength="3">
+                        <div id="cardCvcError" class="error"></div>
+                    </div>
+                </div>
+                
+                <div class="step-navigation">
+                    <button type="button" onclick="prevStep(3)">Назад</button>
+                    <button type="submit">Завершить</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Кастомные валидаторы -->
+    <div id="custom" class="tabcontent">
+        <h2>Кастомные валидаторы</h2>
+        
+        <form id="customForm" class="section">
+            <div class="form-group">
+                <label for="inn">ИНН:</label>
+                <input type="text" id="inn" placeholder="Введите ИНН (10 или 12 цифр)">
+                <div id="innError" class="error"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="snils">СНИЛС:</label>
+                <input type="text" id="snils" placeholder="XXX-XXX-XXX XX">
+                <div id="snilsError" class="error"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="bik">БИК банка:</label>
+                <input type="text" id="bik" placeholder="Введите БИК">
+                <div id="bikError" class="error"></div>
+            </div>
+            
+            <button type="submit">Проверить</button>
+        </form>
+    </div>
+
+    <script>
+        // Функции для работы с табами
+        function openTab(evt, tabName) {
+            const tabcontents = document.getElementsByClassName("tabcontent");
+            for (let i = 0; i < tabcontents.length; i++) {
+                tabcontents[i].classList.remove("visible");
+            }
+            
+            const tablinks = document.getElementsByClassName("tablinks");
+            for (let i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            
+            document.getElementById(tabName).classList.add("visible");
+            evt.currentTarget.className += " active";
+        }
+        
+        // Форма регистрации
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (validateRegistrationForm()) {
+                alert('Регистрация успешно завершена!');
+                this.reset();
+                document.getElementById('passwordStrengthBar').style.width = '0%';
+            }
+        });
+        
+        function validateRegistrationForm() {
+            let isValid = true;
+            
+            // Валидация имени
+            const name = document.getElementById('regName').value.trim();
+            const nameError = document.getElementById('regNameError');
+            if (name.length < 2) {
+                nameError.textContent = 'Имя должно содержать минимум 2 символа';
+                isValid = false;
+            } else {
+                nameError.textContent = '';
+            }
+            
+            // Валидация email
+            const email = document.getElementById('regEmail').value.trim();
+            const emailError = document.getElementById('regEmailError');
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(email)) {
+                emailError.textContent = 'Введите корректный email';
+                isValid = false;
+            } else {
+                emailError.textContent = '';
+            }
+            
+            // Валидация пароля
+            const password = document.getElementById('regPassword').value;
+            const passwordError = document.getElementById('regPasswordError');
+            if (password.length < 8) {
+                passwordError.textContent = 'Пароль должен содержать минимум 8 символов';
+                isValid = false;
+            } else {
+                passwordError.textContent = '';
+            }
+            
+            // Подтверждение пароля
+            const confirmPassword = document.getElementById('regConfirmPassword').value;
+            const confirmError = document.getElementById('regConfirmPasswordError');
+            if (password !== confirmPassword) {
+                confirmError.textContent = 'Пароли не совпадают';
+                isValid = false;
+            } else {
+                confirmError.textContent = '';
+            }
+            
+            return isValid;
+        }
+        
+        // Индикатор сложности пароля
+        document.getElementById('regPassword').addEventListener('input', function() {
+            const password = this.value;
+            const strengthBar = document.getElementById('passwordStrengthBar');
+            let strength = 0;
+            
+            if (password.length > 0) strength += 20;
+            if (password.length >= 8) strength += 20;
+            if (/[A-Z]/.test(password)) strength += 20;
+            if (/\d/.test(password)) strength += 20;
+            if (/[^A-Za-z0-9]/.test(password)) strength += 20;
+            
+            strengthBar.style.width = strength + '%';
+            
+            if (strength < 40) {
+                strengthBar.style.backgroundColor = '#e74c3c';
+            } else if (strength < 80) {
+                strengthBar.style.backgroundColor = '#f39c12';
+            } else {
+                strengthBar.style.backgroundColor = '#2ecc71';
+            }
+        });
+        
+        // Форма заказа
+        document.getElementById('orderForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (validateOrderForm()) {
+                alert('Заказ успешно оформлен!');
+                this.reset();
+            }
+        });
+        
+        function validateOrderForm() {
+            let isValid = true;
+            
+            // Валидация количества
+            const quantity = document.getElementById('quantity').value;
+            const quantityError = document.getElementById('quantityError');
+            if (quantity < 1 || quantity > 10) {
+                quantityError.textContent = 'Количество должно быть от 1 до 10';
+                isValid = false;
+            } else {
+                quantityError.textContent = '';
+            }
+            
+            // Валидация промокода
+            const promoCode = document.getElementById('promoCode').value.trim();
+            const promoCodeError = document.getElementById('promoCodeError');
+            const promoCodeStatus = document.getElementById('promoCodeStatus');
+            
+            if (promoCode && !/^[A-Z]{5,}\d{4}$/.test(promoCode)) {
+                promoCodeError.textContent = 'Неверный формат промокода (пример: SUMMER2023)';
+                promoCodeStatus.textContent = '';
+                isValid = false;
+            } else {
+                promoCodeError.textContent = '';
+                if (promoCode) {
+                    promoCodeStatus.textContent = 'Промокод применен';
+                    promoCodeStatus.style.color = '#2ecc71';
+                } else {
+                    promoCodeStatus.textContent = '';
+                }
+            }
+            
+            // Валидация email
+            const email = document.getElementById('orderEmail').value.trim();
+            const emailError = document.getElementById('orderEmailError');
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(email)) {
+                emailError.textContent = 'Введите корректный email для получения чека';
+                isValid = false;
+            } else {
+                emailError.textContent = '';
+            }
+            
+            return isValid;
+        }
+        
+        // Многошаговая форма
+        let formData = {};
+        
+        document.getElementById('multistepForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (validateStep(3)) {
+                // Сохраняем данные последнего шага
+                saveStepData(3);
+                
+                alert('Форма успешно отправлена!\n' + JSON.stringify(formData, null, 2));
+                this.reset();
+                formData = {};
+                
+                // Возвращаемся к первому шагу
+                document.querySelectorAll('.step').forEach(step => {
+                    step.classList.remove('active');
+                });
+                document.getElementById('step1').classList.add('active');
+            }
+        });
+        
+        function nextStep(currentStep) {
+            if (validateStep(currentStep)) {
+                saveStepData(currentStep);
+                
+                document.getElementById('step' + currentStep).classList.remove('active');
+                document.getElementById('step' + (currentStep + 1)).classList.add('active');
+                
+                // Показываем/скрываем поля карты в зависимости от выбора оплаты
+                if (currentStep + 1 === 3) {
+                    toggleCardFields();
+                }
+            }
+        }
+        
+        function prevStep(currentStep) {
+            document.getElementById('step' + currentStep).classList.remove('active');
+            document.getElementById('step' + (currentStep - 1)).classList.add('active');
+        }
+        
+        function saveStepData(step) {
+            if (step === 1) {
+                formData.name = document.getElementById('msName').value.trim();
+                formData.phone = document.getElementById('msPhone').value.trim();
+                formData.email = document.getElementById('msEmail').value.trim();
+            } else if (step === 2) {
+                formData.country = document.getElementById('msCountry').value.trim();
+                formData.city = document.getElementById('msCity').value.trim();
+                formData.address = document.getElementById('msAddress').value.trim();
+            } else if (step === 3) {
+                formData.payment = document.querySelector('input[name="payment"]:checked').value;
+                if (formData.payment === 'card') {
+                    formData.cardNumber = document.getElementById('cardNumber').value.trim();
+                    formData.cardExpiry = document.getElementById('cardExpiry').value.trim();
+                    formData.cardCvc = document.getElementById('cardCvc').value.trim();
+                }
+            }
+        }
+        
+        function validateStep(step) {
+            let isValid = true;
+            
+            if (step === 1) {
+                // Валидация личных данных
+                const name = document.getElementById('msName').value.trim();
+                const nameError = document.getElementById('msNameError');
+                if (name.length < 2) {
+                    nameError.textContent = 'Введите ваше ФИО';
+                    isValid = false;
+                } else {
+                    nameError.textContent = '';
+                }
+                
+                const phone = document.getElementById('msPhone').value.trim();
+                const phoneError = document.getElementById('msPhoneError');
+                const phonePattern = /^\+?[\d\s\-()]{10,}$/;
+                if (!phonePattern.test(phone)) {
+                    phoneError.textContent = 'Введите корректный номер телефона';
+                    isValid = false;
+                } else {
+                    phoneError.textContent = '';
+                }
+                
+                const email = document.getElementById('msEmail').value.trim();
+                const emailError = document.getElementById('msEmailError');
+                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailPattern.test(email)) {
+                    emailError.textContent = 'Введите корректный email';
+                    isValid = false;
+                } else {
+                    emailError.textContent = '';
+                }
+            } else if (step === 2) {
+                // Валидация адреса
+                const country = document.getElementById('msCountry').value.trim();
+                const countryError = document.getElementById('msCountryError');
+                if (country.length < 2) {
+                    countryError.textContent = 'Введите страну';
+                    isValid = false;
+                } else {
+                    countryError.textContent = '';
+                }
+                
+                const city = document.getElementById('msCity').value.trim();
+                const cityError = document.getElementById('msCityError');
+                if (city.length < 2) {
+                    cityError.textContent = 'Введите город';
+                    isValid = false;
+                } else {
+                    cityError.textContent = '';
+                }
+                
+                const address = document.getElementById('msAddress').value.trim();
+                const addressError = document.getElementById('msAddressError');
+                if (address.length < 5) {
+                    addressError.textContent = 'Введите адрес';
+                    isValid = false;
+                } else {
+                    addressError.textContent = '';
+                }
+            } else if (step === 3) {
+                // Валидация оплаты
+                const payment = document.querySelector('input[name="payment"]:checked').value;
+                
+                if (payment === 'card') {
+                    const cardNumber = document.getElementById('cardNumber').value.trim();
+                    const cardNumberError = document.getElementById('cardNumberError');
+                    if (!/^\d{4}\s?\d{4}\s?\d{4}\s?\d{4}$/.test(cardNumber)) {
+                        cardNumberError.textContent = 'Введите корректный номер карты';
+                        isValid = false;
+                    } else {
+                        cardNumberError.textContent = '';
+                    }
+                    
+                    const cardExpiry = document.getElementById('cardExpiry').value.trim();
+                    const cardExpiryError = document.getElementById('cardExpiryError');
+                    if (!/^(0[1-9]|1[0-2])\/?([0-9]{2})$/.test(cardExpiry)) {
+                        cardExpiryError.textContent = 'Введите срок действия в формате MM/YY';
+                        isValid = false;
+                    } else {
+                        cardExpiryError.textContent = '';
+                    }
+                    
+                    const cardCvc = document.getElementById('cardCvc').value.trim();
+                    const cardCvcError = document.getElementById('cardCvcError');
+                    if (!/^\d{3}$/.test(cardCvc)) {
+                        cardCvcError.textContent = 'Введите CVC код (3 цифры)';
+                        isValid = false;
+                    } else {
+                        cardCvcError.textContent = '';
+                    }
+                }
+            }
+            
+            return isValid;
+        }
+        
+        function toggleCardFields() {
+            const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
+            const cardFields = document.getElementById('cardFields');
+            
+            if (paymentMethod === 'card') {
+                cardFields.style.display = 'block';
+            } else {
+                cardFields.style.display = 'none';
+            }
+        }
+        
+        // Навешиваем обработчики на радиокнопки оплаты
+        document.querySelectorAll('input[name="payment"]').forEach(radio => {
+            radio.addEventListener('change', toggleCardFields);
+        });
+        
+        // Кастомные валидаторы
+        document.getElementById('customForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            validateCustomFields();
+        });
+        
+        function validateCustomFields() {
+            let allValid = true;
+            
+            // Валидация ИНН
+            const inn = document.getElementById('inn').value.trim();
+            const innError = document.getElementById('innError');
+            
+            if (!validateINN(inn)) {
+                innError.textContent = 'Неверный ИНН. Должно быть 10 или 12 цифр с правильной контрольной суммой';
+                allValid = false;
+            } else {
+                innError.textContent = '';
+            }
+            
+            // Валидация СНИЛС
+            const snils = document.getElementById('snils').value.trim();
+            const snilsError = document.getElementById('snilsError');
+            
+            if (!validateSNILS(snils)) {
+                snilsError.textContent = 'Неверный СНИЛС. Формат: XXX-XXX-XXX XX';
+                allValid = false;
+            } else {
+                snilsError.textContent = '';
+            }
+            
+            // Валидация БИК
+            const bik = document.getElementById('bik').value.trim();
+            const bikError = document.getElementById('bikError');
+            
+            if (!validateBIK(bik)) {
+                bikError.textContent = 'Неверный БИК. Должно быть 9 цифр';
+                allValid = false;
+            } else {
+                bikError.textContent = '';
+            }
+            
+            if (allValid) {
+                alert('Все данные верны!');
+            }
+        }
+        
+        function validateINN(inn) {
+            // Проверка длины
+            if (!/^\d{10}$/.test(inn) && !/^\d{12}$/.test(inn)) {
+                return false;
+            }
+            
+            // Проверка контрольных сумм
+            if (inn.length === 10) {
+                // Проверка для 10-значного ИНН
+                const weights = [2, 4, 10, 3, 5, 9, 4, 6, 8];
+                let sum = 0;
+                
+                for (let i = 0; i < 9; i++) {
+                    sum += parseInt(inn[i]) * weights[i];
+                }
+                
+                const control = (sum % 11) % 10;
+                return control === parseInt(inn[9]);
+            } else if (inn.length === 12) {
+                // Проверка для 12-значного ИНН
+                const weights1 = [7, 2, 4, 10, 3, 5, 9, 4, 6, 8];
+                let sum1 = 0;
+                
+                for (let i = 0; i < 10; i++) {
+                    sum1 += parseInt(inn[i]) * weights1[i];
+                }
+                
+                const control1 = (sum1 % 11) % 10;
+                if (control1 !== parseInt(inn[10])) {
+                    return false;
+                }
+                
+                const weights2 = [3, 7, 2, 4, 10, 3, 5, 9, 4, 6, 8];
+                let sum2 = 0;
+                
+                for (let i = 0; i < 11; i++) {
+                    sum2 += parseInt(inn[i]) * weights2[i];
+                }
+                
+                const control2 = (sum2 % 11) % 10;
+                return control2 === parseInt(inn[11]);
+            }
+            
+            return false;
+        }
+        
+        function validateSNILS(snils) {
+            // Проверка формата
+            if (!/^\d{3}-\d{3}-\d{3} \d{2}$/.test(snils)) {
+                return false;
+            }
+            
+            // Удаляем разделители
+            const cleanSnils = snils.replace(/\D/g, '');
+            
+            // Проверка контрольного числа
+            const digits = cleanSnils.slice(0, 9);
+            const control = parseInt(cleanSnils.slice(9, 11));
+            
+            // Если номер меньше 001-001-998, контрольное число вычисляется обычным способом
+            if (parseInt(digits) <= 1001998) {
+                let sum = 0;
+                for (let i = 0; i < 9; i++) {
+                    sum += parseInt(digits[i]) * (9 - i);
+                }
+                
+                let calculatedControl = sum % 101;
+                if (calculatedControl === 100) calculatedControl = 0;
+                
+                return calculatedControl === control;
+            } else {
+                // Для номеров больше 001-001-998 контрольное число должно быть 00
+                return control === 0;
+            }
+        }
+        
+        function validateBIK(bik) {
+            // БИК должен состоять из 9 цифр
+            return /^\d{9}$/.test(bik);
+        }
+    </script>
+</body>
+</html>

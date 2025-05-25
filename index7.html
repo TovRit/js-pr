@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DOM + BOM Задания</title>
+    <style>
+        .responsive-box {
+            width: 200px;
+            height: 200px;
+            margin: 20px;
+            transition: background-color 0.3s;
+        }
+        .history-item {
+            padding: 5px;
+            margin: 5px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <!-- Таймер -->
+    <div>
+        <h2>Таймер</h2>
+        <div id="timer">0</div>
+        <button id="startTimer">Старт</button>
+        <button id="resetTimer">Сброс</button>
+    </div>
+
+    <!-- Адаптивный блок -->
+    <div>
+        <h2>Адаптивный блок</h2>
+        <div class="responsive-box" id="responsiveBox"></div>
+    </div>
+
+    <!-- История -->
+    <div>
+        <h2>История</h2>
+        <button id="addHistory">Добавить в историю</button>
+        <button id="backButton">Назад</button>
+        <div id="historyContent"></div>
+    </div>
+
+    <script>
+        // 1. Таймер
+        let timerValue = 0;
+        let timerInterval = null;
+        const timerElement = document.getElementById('timer');
+        
+        document.getElementById('startTimer').addEventListener('click', function() {
+            if (!timerInterval) {
+                this.textContent = 'Пауза';
+                timerInterval = setInterval(() => {
+                    timerValue++;
+                    timerElement.textContent = timerValue;
+                }, 1000);
+            } else {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                this.textContent = 'Продолжить';
+            }
+        });
+
+        document.getElementById('resetTimer').addEventListener('click', () => {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            timerValue = 0;
+            timerElement.textContent = 0;
+            document.getElementById('startTimer').textContent = 'Старт';
+        });
+
+        // 2. Адаптация стилей
+        const responsiveBox = document.getElementById('responsiveBox');
+        
+        function updateLayout() {
+            if (window.screen.width < 600) {
+                responsiveBox.style.backgroundColor = 'lightcoral';
+                responsiveBox.textContent = 'Мобильная версия';
+            } else {
+                responsiveBox.style.backgroundColor = 'lightgreen';
+                responsiveBox.textContent = 'Десктопная версия';
+            }
+        }
+        
+        window.addEventListener('resize', updateLayout);
+        updateLayout(); // Первоначальная проверка
+
+        // 3. История посещений
+        const historyState = {
+            items: [],
+            currentIndex: -1
+        };
+
+        document.getElementById('addHistory').addEventListener('click', () => {
+            const newItem = `Состояние ${historyState.items.length + 1}`;
+            historyState.items.push(newItem);
+            historyState.currentIndex = historyState.items.length - 1;
+            
+            history.pushState(
+                { index: historyState.currentIndex },
+                newItem,
+                `?state=${historyState.currentIndex}`
+            );
+            
+            updateHistoryDisplay();
+        });
+
+        window.addEventListener('popstate', (e) => {
+            if (e.state) {
+                historyState.currentIndex = e.state.index;
+                updateHistoryDisplay();
+            }
+        });
+
+        document.getElementById('backButton').addEventListener('click', () => {
+            history.back();
+        });
+
+        function updateHistoryDisplay() {
+            const content = document.getElementById('historyContent');
+            content.innerHTML = historyState.items
+                .map((item, index) => 
+                    `<div class="history-item" ${index === historyState.currentIndex ? 'style="background:yellow"' : ''}>
+                        ${item}
+                    </div>`
+                ).join('');
+        }
+    </script>
+</body>
+</html>

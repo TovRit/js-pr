@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOM Практика</title>
+    <style>
+        /* Общие стили */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        h2 {
+            margin-top: 30px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        button {
+            padding: 8px 12px;
+            margin: 5px;
+            cursor: pointer;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+
+        /* Стили для динамической таблицы */
+        .table-controls {
+            margin: 10px 0;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 10px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .editable {
+            cursor: pointer;
+        }
+        .editable:hover {
+            background-color: #e6f7ff;
+        }
+
+        /* Стили для дерева каталогов */
+        .tree {
+            margin: 15px 0;
+        }
+        .tree ul {
+            list-style-type: none;
+            padding-left: 20px;
+        }
+        .tree li {
+            margin: 5px 0;
+            position: relative;
+        }
+        .tree-node {
+            display: flex;
+            align-items: center;
+        }
+        .toggle {
+            cursor: pointer;
+            margin-right: 5px;
+            user-select: none;
+        }
+        .folder {
+            color: #FFA500;
+        }
+        .tree-controls {
+            margin-left: 10px;
+        }
+        .tree-controls button {
+            padding: 2px 5px;
+            font-size: 12px;
+            margin: 0 2px;
+        }
+
+        /* Стили для сортировки списка */
+        .sortable-list {
+            list-style: none;
+            padding: 0;
+            max-width: 300px;
+        }
+        .sortable-list li {
+            padding: 8px;
+            margin: 5px 0;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+        }
+        .sort-controls {
+            margin: 10px 0;
+        }
+
+        /* Стили для конструктора блоков */
+        .block-constructor {
+            margin: 20px 0;
+        }
+        .block-controls {
+            margin: 10px 0;
+        }
+        .blocks-container {
+            min-height: 200px;
+            border: 2px dashed #ccc;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .block {
+            padding: 10px;
+            margin: 10px 0;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            position: relative;
+        }
+        .block.dragging {
+            opacity: 0.5;
+        }
+        .block-text {
+            background: #e3f2fd;
+        }
+        .block-image {
+            background: #fff8e1;
+        }
+        .block img {
+            max-width: 100%;
+            height: auto;
+        }
+        .block-remove {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            cursor: pointer;
+            color: #f44336;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- 1. Динамическая таблица -->
+    <h2>Динамическая таблица</h2>
+    <div class="table-controls">
+        <button id="addRowBtn">Добавить строку</button>
+        <button id="removeRowBtn">Удалить строку</button>
+    </div>
+    <table id="dynamicTable">
+        <thead>
+            <tr>
+                <th>Имя</th>
+                <th>Возраст</th>
+                <th>Город</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="editable">Иван</td>
+                <td class="editable">25</td>
+                <td class="editable">Москва</td>
+            </tr>
+            <tr>
+                <td class="editable">Анна</td>
+                <td class="editable">30</td>
+                <td class="editable">Санкт-Петербург</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- 2. Дерево каталогов -->
+    <h2>Дерево каталогов</h2>
+    <div class="tree-controls">
+        <button id="addRootNodeBtn">Добавить корневой узел</button>
+    </div>
+    <div class="tree" id="tree">
+        <ul>
+            <li>
+                <div class="tree-node">
+                    <span class="toggle">+</span>
+                    <span class="folder">Главная</span>
+                    <div class="tree-controls">
+                        <button class="add-child-btn">+</button>
+                        <button class="remove-node-btn">×</button>
+                    </div>
+                </div>
+                <ul>
+                    <li>
+                        <div class="tree-node">
+                            <span class="toggle">+</span>
+                            <span class="folder">Документы</span>
+                            <div class="tree-controls">
+                                <button class="add-child-btn">+</button>
+                                <button class="remove-node-btn">×</button>
+                            </div>
+                        </div>
+                        <ul>
+                            <li>
+                                <div class="tree-node">
+                                    <span>Работа</span>
+                                    <div class="tree-controls">
+                                        <button class="add-child-btn">+</button>
+                                        <button class="remove-node-btn">×</button>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <!-- 3. Сортировка списка -->
+    <h2>Сортировка списка</h2>
+    <div class="sort-controls">
+        <button id="sortAscBtn">По алфавиту (А-Я)</button>
+        <button id="sortDescBtn">По алфавиту (Я-А)</button>
+        <button id="shuffleBtn">Перемешать</button>
+    </div>
+    <ul class="sortable-list" id="sortableList">
+        <li>Яблоко</li>
+        <li>Банан</li>
+        <li>Апельсин</li>
+        <li>Груша</li>
+        <li>Киви</li>
+    </ul>
+
+    <!-- 4. Конструктор блоков -->
+    <h2>Конструктор блоков</h2>
+    <div class="block-constructor">
+        <div class="block-controls">
+            <button id="addTextBlockBtn">Добавить текстовый блок</button>
+            <button id="addImageBlockBtn">Добавить блок с изображением</button>
+        </div>
+        <div class="blocks-container" id="blocksContainer">
+            <!-- Блоки будут добавляться сюда -->
+        </div>
+    </div>
+
+<script>
+    // 1. Динамическая таблица
+    const table = document.getElementById('dynamicTable');
+    const addRowBtn = document.getElementById('addRowBtn');
+    const removeRowBtn = document.getElementById('removeRowBtn');
+
+    // Добавление строки
+    addRowBtn.addEventListener('click', function() {
+        const newRow = table.tBodies[0].insertRow();
+        for (let i = 0; i < 3; i++) {
+            const cell = newRow.insertCell();
+            cell.textContent = 'Новое значение';
+            cell.classList.add('editable');
+        }
+    });
+
+    // Удаление строки
+    removeRowBtn.addEventListener('click', function() {
+        const rows = table.tBodies[0].rows;
+        if (rows.length > 0) {
+            table.tBodies[0].deleteRow(rows.length - 1);
+        }
+    });
+
+    // Редактирование ячеек
+    table.addEventListener('click', function(e) {
+        const cell = e.target.closest('.editable');
+        if (!cell) return;
+
+        const originalText = cell.textContent;
+        cell.textContent = '';
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = originalText;
+        input.style.width = '90%';
+        
+        input.addEventListener('blur', function() {
+            cell.textContent = this.value;
+        });
+        
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                this.blur();
+            }
+        });
+        
+        cell.appendChild(input);
+        input.focus();
+    });
+
+    // 2. Дерево каталогов
+    const tree = document.getElementById('tree');
+    const addRootNodeBtn = document.getElementById('addRootNodeBtn');
+
+    // Добавление корневого узла
+    addRootNodeBtn.addEventListener('click', function() {
+        const ul = tree.querySelector('ul') || tree.appendChild(document.createElement('ul'));
+        
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <div class="tree-node">
+                <span class="toggle">+</span>
+                <span class="folder">Новая папка</span>
+                <div class="tree-controls">
+                    <button class="add-child-btn">+</button>
+                    <button class="remove-node-btn">×</button>
+                </div>
+            </div>
+            <ul></ul>
+        `;
+        
+        ul.appendChild(li);
+        initTreeEvents();
+    });
+
+    // Инициализация событий дерева
+    function initTreeEvents() {
+        // Переключение сворачивания/разворачивания
+        tree.querySelectorAll('.toggle').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                const ul = this.parentElement.nextElementSibling;
+                if (ul.style.display === 'none') {
+                    ul.style.display = 'block';
+                    this.textContent = '+';
+                } else {
+                    ul.style.display = 'none';
+                    this.textContent = '-';
+                }
+            });
+        });
+
+        // Добавление дочернего узла
+        tree.querySelectorAll('.add-child-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const ul = this.closest('.tree-node').nextElementSibling;
+                if (!ul) {
+                    const newUl = document.createElement('ul');
+                    this.closest('li').appendChild(newUl);
+                    ul = newUl;
+                }
+                
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div class="tree-node">
+                        <span>Новый элемент</span>
+                        <div class="tree-controls">
+                            <button class="add-child-btn">+</button>
+                            <button class="remove-node-btn">×</button>
+                        </div>
+                    </div>
+                `;
+                
+                ul.appendChild(li);
+                initTreeEvents();
+            });
+        });
+
+        // Удаление узла
+        tree.querySelectorAll('.remove-node-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (confirm('Удалить этот узел и все его дочерние элементы?')) {
+                    this.closest('li').remove();
+                }
+            });
+        });
+    }
+
+    // Инициализация дерева при загрузке
+    initTreeEvents();
+
+    // 3. Сортировка списка
+    const sortableList = document.getElementById('sortableList');
+    const sortAscBtn = document.getElementById('sortAscBtn');
+    const sortDescBtn = document.getElementById('sortDescBtn');
+    const shuffleBtn = document.getElementById('shuffleBtn');
+
+    // Сортировка по алфавиту (А-Я)
+    sortAscBtn.addEventListener('click', function() {
+        const items = Array.from(sortableList.children);
+        items.sort((a, b) => a.textContent.localeCompare(b.textContent));
+        sortableList.innerHTML = '';
+        items.forEach(item => sortableList.appendChild(item));
+    });
+
+    // Сортировка по алфавиту (Я-А)
+    sortDescBtn.addEventListener('click', function() {
+        const items = Array.from(sortableList.children);
+        items.sort((a, b) => b.textContent.localeCompare(a.textContent));
+        sortableList.innerHTML = '';
+        items.forEach(item => sortableList.appendChild(item));
+    });
+
+    // Перемешивание элементов
+    shuffleBtn.addEventListener('click', function() {
+        const items = Array.from(sortableList.children);
+        for (let i = items.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            sortableList.appendChild(items[j]);
+        }
+    });
+
+    // 4. Конструктор блоков
+    const blocksContainer = document.getElementById('blocksContainer');
+    const addTextBlockBtn = document.getElementById('addTextBlockBtn');
+    const addImageBlockBtn = document.getElementById('addImageBlockBtn');
+    let draggedBlock = null;
+
+    // Добавление текстового блока
+    addTextBlockBtn.addEventListener('click', function() {
+        const block = document.createElement('div');
+        block.className = 'block block-text';
+        block.draggable = true;
+        block.innerHTML = `
+            <div class="block-remove">×</div>
+            <p>Это новый текстовый блок. Нажмите, чтобы редактировать.</p>
+        `;
+        blocksContainer.appendChild(block);
+        initBlockEvents(block);
+    });
+
+    // Добавление блока с изображением
+    addImageBlockBtn.addEventListener('click', function() {
+        const block = document.createElement('div');
+        block.className = 'block block-image';
+        block.draggable = true;
+        block.innerHTML = `
+            <div class="block-remove">×</div>
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2EnqwTVDkBgPAGfZXQdR3gv0u4SlApa6TAQ&s?random=${Math.random()}" alt="Случайное изображение">
+        `;
+        blocksContainer.appendChild(block);
+        initBlockEvents(block);
+    });
+
+    // Инициализация событий блока
+    function initBlockEvents(block) {
+        // Удаление блока
+        block.querySelector('.block-remove').addEventListener('click', function() {
+            block.remove();
+        });
+
+        // Редактирование текстового блока
+        if (block.classList.contains('block-text')) {
+            block.addEventListener('click', function() {
+                const p = this.querySelector('p');
+                const text = p.textContent;
+                p.textContent = '';
+                
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.width = '100%';
+                textarea.style.minHeight = '60px';
+                
+                textarea.addEventListener('blur', function() {
+                    p.textContent = this.value;
+                });
+                
+                p.appendChild(textarea);
+                textarea.focus();
+            });
+        }
+
+        // Drag-and-drop
+        block.addEventListener('dragstart', function() {
+            draggedBlock = this;
+            setTimeout(() => this.classList.add('dragging'), 0);
+        });
+
+        block.addEventListener('dragend', function() {
+            this.classList.remove('dragging');
+        });
+    }
+
+    // Обработка перетаскивания в контейнере
+    blocksContainer.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        const afterElement = getDragAfterElement(this, e.clientY);
+        if (afterElement) {
+            this.insertBefore(draggedBlock, afterElement);
+        } else {
+            this.appendChild(draggedBlock);
+        }
+    });
+
+    function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.block:not(.dragging)')];
+        
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+</script>
+</body>
+</html>

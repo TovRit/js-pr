@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOM Практика</title>
+    <style>
+        /* Общие стили */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            transition: all 0.3s;
+        }
+        h1, h2, h3 {
+            margin-top: 30px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        button {
+            padding: 8px 12px;
+            margin: 5px;
+            cursor: pointer;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        /* Стили для менеджера ссылок */
+        .external-link {
+            color: #e91e63;
+            font-weight: bold;
+        }
+        .link-item {
+            margin: 10px 0;
+            padding: 8px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+        }
+        .link-controls button {
+            margin-left: 5px;
+            padding: 3px 6px;
+            font-size: 12px;
+        }
+
+        /* Стили для анализатора страницы */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .stat-item {
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 4px;
+        }
+
+        /* Стили для оглавления */
+        .toc {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .toc ul {
+            list-style: none;
+            padding-left: 20px;
+        }
+        .toc a {
+            text-decoration: none;
+            color: #333;
+        }
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        .toc-level-2 {
+            font-weight: bold;
+        }
+        .toc-level-3 {
+            font-style: italic;
+        }
+
+        /* Стили для модификатора страницы */
+        .modifier-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .modifier-btn {
+            min-width: 120px;
+        }
+        .night-mode {
+            background-color: #333;
+            color: #f0f0f0;
+        }
+        .night-mode .section {
+            border-color: #555;
+        }
+        .night-mode .toc {
+            background: #444;
+        }
+        .night-mode .toc a {
+            color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <!-- 1. Менеджер ссылок -->
+    <div class="section">
+        <h2>Менеджер ссылок</h2>
+        <div class="link-manager">
+            <div>
+                <input type="text" id="linkText" placeholder="Текст ссылки">
+                <input type="url" id="linkUrl" placeholder="URL">
+                <button id="addLinkBtn">Добавить ссылку</button>
+                <label>
+                    <input type="checkbox" id="openNewWindow"> Открывать в новом окне
+                </label>
+            </div>
+            <div id="linksContainer">
+                <!-- Ссылки будут добавляться сюда -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Анализатор страницы -->
+    <div class="section">
+        <h2>Анализатор страницы</h2>
+        <div class="stats" id="pageStats">
+            <!-- Статистика будет добавляться сюда -->
+        </div>
+    </div>
+
+    <!-- 3. Генератор оглавления -->
+    <div class="section">
+        <h2>Оглавление</h2>
+        <div class="toc" id="tableOfContents">
+            <!-- Оглавление будет генерироваться здесь -->
+        </div>
+    </div>
+
+    <!-- 4. Модификатор страницы -->
+    <div class="section">
+        <h2>Модификатор страницы</h2>
+        <div class="modifier-controls">
+            <button id="bgColorBtn" class="modifier-btn">Изменить фон</button>
+            <button id="increaseFontBtn" class="modifier-btn">Увеличить шрифт</button>
+            <button id="decreaseFontBtn" class="modifier-btn">Уменьшить шрифт</button>
+            <button id="toggleModeBtn" class="modifier-btn">Ночной режим</button>
+            <button id="resetStylesBtn" class="modifier-btn">Сбросить стили</button>
+        </div>
+    </div>
+
+    <!-- Контент для демонстрации оглавления -->
+    <h2 id="section1">Раздел 1</h2>
+    <p>Содержание раздела 1.</p>
+    
+    <h3 id="subsection1-1">Подраздел 1.1</h3>
+    <p>Содержание подраздела 1.1.</p>
+    
+    <h3 id="subsection1-2">Подраздел 1.2</h3>
+    <p>Содержание подраздела 1.2.</p>
+    
+    <h2 id="section2">Раздел 2</h2>
+    <p>Содержание раздела 2.</p>
+    
+    <h3 id="subsection2-1">Подраздел 2.1</h3>
+    <p>Содержание подраздела 2.1.</p>
+
+<script>
+    // 1. Менеджер ссылок
+    const linksContainer = document.getElementById('linksContainer');
+    const addLinkBtn = document.getElementById('addLinkBtn');
+    const linkTextInput = document.getElementById('linkText');
+    const linkUrlInput = document.getElementById('linkUrl');
+    const openNewWindowCheckbox = document.getElementById('openNewWindow');
+
+    // Добавление новой ссылки
+    addLinkBtn.addEventListener('click', function() {
+        const text = linkTextInput.value.trim();
+        const url = linkUrlInput.value.trim();
+        
+        if (text && url) {
+            addLink(text, url, openNewWindowCheckbox.checked);
+            linkTextInput.value = '';
+            linkUrlInput.value = '';
+        } else {
+            alert('Заполните оба поля!');
+        }
+    });
+
+    function addLink(text, url, openInNewWindow = false) {
+        const linkItem = document.createElement('div');
+        linkItem.className = 'link-item';
+        
+        const link = document.createElement('a');
+        link.textContent = text;
+        link.href = url;
+        link.target = openInNewWindow ? '_blank' : '_self';
+        
+        // Проверка на внешнюю ссылку
+        if (!url.includes(window.location.hostname)) {
+            link.classList.add('external-link');
+        }
+        
+        const linkControls = document.createElement('div');
+        linkControls.className = 'link-controls';
+        
+        const editBtn = document.createElement('button');
+        editBtn.textContent = 'Изменить';
+        editBtn.addEventListener('click', () => editLink(link));
+        
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = 'Удалить';
+        removeBtn.style.background = '#f44336';
+        removeBtn.addEventListener('click', () => linkItem.remove());
+        
+        linkControls.appendChild(editBtn);
+        linkControls.appendChild(removeBtn);
+        
+        linkItem.appendChild(link);
+        linkItem.appendChild(linkControls);
+        linksContainer.appendChild(linkItem);
+    }
+
+    // Редактирование ссылки
+    function editLink(linkElement) {
+        const currentText = linkElement.textContent;
+        const currentUrl = linkElement.href;
+        
+        const newText = prompt('Новый текст ссылки:', currentText);
+        if (newText === null) return;
+        
+        const newUrl = prompt('Новый URL:', currentUrl);
+        if (newUrl === null) return;
+        
+        linkElement.textContent = newText;
+        linkElement.href = newUrl;
+        
+        // Обновляем класс для внешних ссылок
+        linkElement.classList.toggle('external-link', !newUrl.includes(window.location.hostname));
+    }
+
+    // Добавим несколько демонстрационных ссылок
+    addLink('Google', 'https://google.com', true);
+    addLink('Пример внутренней ссылки', '#section1');
+
+    // 2. Анализатор страницы
+    function analyzePage() {
+        const statsContainer = document.getElementById('pageStats');
+        
+        const linksCount = document.getElementsByTagName('a').length;
+        const imagesCount = document.getElementsByTagName('img').length;
+        const pageTitle = document.title;
+        const bodyWidth = document.body.clientWidth;
+        const bodyHeight = document.body.clientHeight;
+        
+        statsContainer.innerHTML = `
+            <div class="stat-item">Количество ссылок: <strong>${linksCount}</strong></div>
+            <div class="stat-item">Количество изображений: <strong>${imagesCount}</strong></div>
+            <div class="stat-item">Заголовок страницы: <strong>${pageTitle}</strong></div>
+            <div class="stat-item">Ширина body: <strong>${bodyWidth}px</strong></div>
+            <div class="stat-item">Высота body: <strong>${bodyHeight}px</strong></div>
+        `;
+    }
+
+    // Запускаем анализ при загрузке и при изменении размера окна
+    analyzePage();
+    window.addEventListener('resize', analyzePage);
+
+    // 3. Генератор оглавления
+    function generateTOC() {
+        const tocContainer = document.getElementById('tableOfContents');
+        const headings = document.querySelectorAll('h2, h3');
+        
+        if (headings.length === 0) {
+            tocContainer.innerHTML = '<p>На странице нет заголовков для оглавления</p>';
+            return;
+        }
+        
+        let tocHTML = '<ul>';
+        let currentH2 = null;
+        
+        headings.forEach(heading => {
+            // Создаем id, если его нет
+            if (!heading.id) {
+                heading.id = heading.textContent.toLowerCase().replace(/\s+/g, '-');
+            }
+            
+            if (heading.tagName === 'H2') {
+                if (currentH2) {
+                    tocHTML += '</ul></li>';
+                }
+                currentH2 = heading;
+                tocHTML += `
+                    <li class="toc-level-2">
+                        <a href="#${heading.id}">${heading.textContent}</a>
+                        <ul>
+                `;
+            } else if (heading.tagName === 'H3' && currentH2) {
+                tocHTML += `
+                    <li class="toc-level-3">
+                        <a href="#${heading.id}">${heading.textContent}</a>
+                    </li>
+                `;
+            }
+        });
+        
+        if (currentH2) {
+            tocHTML += '</ul></li>';
+        }
+        tocHTML += '</ul>';
+        
+        tocContainer.innerHTML = tocHTML;
+    }
+
+    // Генерируем оглавление при загрузке
+    generateTOC();
+
+    // 4. Модификатор страницы
+    const bgColorBtn = document.getElementById('bgColorBtn');
+    const increaseFontBtn = document.getElementById('increaseFontBtn');
+    const decreaseFontBtn = document.getElementById('decreaseFontBtn');
+    const toggleModeBtn = document.getElementById('toggleModeBtn');
+    const resetStylesBtn = document.getElementById('resetStylesBtn');
+    
+    let currentFontSize = 16;
+
+    // Изменение фона
+    bgColorBtn.addEventListener('click', function() {
+        const colors = ['#ffffff', '#f0f0f0', '#e3f2fd', '#fff8e1', '#e8f5e9'];
+        const currentBg = document.body.style.backgroundColor || 'white';
+        const currentIndex = colors.indexOf(currentBg);
+        const nextIndex = (currentIndex + 1) % colors.length;
+        document.body.style.backgroundColor = colors[nextIndex];
+    });
+
+    // Увеличение шрифта
+    increaseFontBtn.addEventListener('click', function() {
+        if (currentFontSize < 24) {
+            currentFontSize += 2;
+            document.body.style.fontSize = `${currentFontSize}px`;
+        }
+    });
+
+    // Уменьшение шрифта
+    decreaseFontBtn.addEventListener('click', function() {
+        if (currentFontSize > 12) {
+            currentFontSize -= 2;
+            document.body.style.fontSize = `${currentFontSize}px`;
+        }
+    });
+
+    // Переключение ночного режима
+    toggleModeBtn.addEventListener('click', function() {
+        document.body.classList.toggle('night-mode');
+        this.textContent = document.body.classList.contains('night-mode') 
+            ? 'Дневной режим' 
+            : 'Ночной режим';
+    });
+
+    // Сброс стилей
+    resetStylesBtn.addEventListener('click', function() {
+        document.body.style.backgroundColor = '';
+        document.body.style.fontSize = '';
+        document.body.classList.remove('night-mode');
+        currentFontSize = 16;
+        toggleModeBtn.textContent = 'Ночной режим';
+    });
+</script>
+</body>
+</html>

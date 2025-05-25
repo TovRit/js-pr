@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOM Практика</title>
+    <style>
+        /* Стили для галереи */
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .gallery-item {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .gallery-item:hover {
+            transform: scale(1.03);
+        }
+        .gallery-img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+        }
+        .modal-img {
+            max-width: 100%;
+            max-height: 80vh;
+            display: block;
+        }
+        .modal-nav {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            transform: translateY(-50%);
+        }
+        .modal-btn {
+            background: rgba(255,255,255,0.7);
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 18px;
+            border-radius: 50%;
+            margin: 0 20px;
+        }
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 35px;
+            cursor: pointer;
+        }
+
+        /* Стили для Drag-and-drop */
+        .drag-container {
+            display: flex;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .draggable {
+            width: 100px;
+            height: 100px;
+            background: #4CAF50;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: move;
+            border-radius: 5px;
+        }
+        .drop-zone {
+            width: 200px;
+            height: 200px;
+            border: 2px dashed #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        .drop-zone.highlight {
+            border-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        /* Стили для кастомного контекстного меню */
+        .custom-context-menu {
+            display: none;
+            position: absolute;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            border-radius: 5px;
+            z-index: 100;
+        }
+        .menu-item {
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+        .menu-item:hover {
+            background: #f0f0f0;
+        }
+
+        /* Стили для формы */
+        .form-group {
+            margin: 15px 0;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            padding: 8px;
+            width: 100%;
+            max-width: 300px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-group.invalid input {
+            border-color: #ff4444;
+        }
+        .error-message {
+            color: #ff4444;
+            font-size: 0.8em;
+            margin-top: 5px;
+            display: none;
+        }
+        .form-group.invalid .error-message {
+            display: block;
+        }
+        .success-message {
+            color: #4CAF50;
+            margin: 15px 0;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Интерактивная галерея -->
+    <h2>Галерея изображений</h2>
+    <div class="gallery" id="gallery">
+        <div class="gallery-item">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRth06tEL85GHEqNS1iUvmi9QyHyqVIAmY7cg&s" data-full="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRth06tEL85GHEqNS1iUvmi9QyHyqVIAmY7cg&s" class="gallery-img" alt="Изображение 1">
+        </div>
+        <div class="gallery-item">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJ-1QXEHtH6cw1M5VY3rns6VqEl2deeLW64Q&s" data-full="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJ-1QXEHtH6cw1M5VY3rns6VqEl2deeLW64Q&s" class="gallery-img" alt="Изображение 2">
+        </div>
+        <div class="gallery-item">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJdgpK5uPfFJ10WgW8018YJcCkIvX5AJaDNA&s" data-full="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJdgpK5uPfFJ10WgW8018YJcCkIvX5AJaDNA&s" class="gallery-img" alt="Изображение 3">
+        </div>
+    </div>
+
+    <!-- Модальное окно галереи -->
+    <div class="modal" id="modal">
+        <span class="close-btn">&times;</span>
+        <div class="modal-content">
+            <img class="modal-img" id="modalImg" src="" alt="">
+            <div class="modal-nav">
+                <button class="modal-btn" id="prevBtn">❮</button>
+                <button class="modal-btn" id="nextBtn">❯</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Drag-and-drop -->
+    <h2>Drag-and-drop</h2>
+    <div class="drag-container">
+        <div class="draggable" id="draggable1" draggable="true">Элемент 1</div>
+        <div class="draggable" id="draggable2" draggable="true">Элемент 2</div>
+        <div class="drop-zone" id="dropZone">Перетащите сюда</div>
+    </div>
+
+    <!-- Кастомное контекстное меню -->
+    <div class="custom-context-menu" id="contextMenu">
+        <div class="menu-item" id="editItem">Редактировать</div>
+        <div class="menu-item" id="deleteItem">Удалить</div>
+        <div class="menu-item" id="copyItem">Копировать</div>
+    </div>
+
+    <!-- Валидация формы -->
+    <h2>Форма с валидацией</h2>
+    <form id="myForm">
+        <div class="form-group">
+            <label for="username">Имя пользователя:</label>
+            <input type="text" id="username" placeholder="Минимум 3 символа">
+            <div class="error-message">Имя должно содержать минимум 3 символа</div>
+        </div>
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" placeholder="Введите email">
+            <div class="error-message">Введите корректный email</div>
+        </div>
+        <div class="form-group">
+            <label for="password">Пароль:</label>
+            <input type="password" id="password" placeholder="Минимум 6 символов">
+            <div class="error-message">Пароль должен содержать минимум 6 символов</div>
+        </div>
+        <button type="submit">Отправить</button>
+        <div class="success-message" id="successMessage">Форма успешно отправлена!</div>
+    </form>
+
+<script>
+    // 1. Интерактивная галерея
+    const gallery = document.getElementById('gallery');
+    const modal = document.getElementById('modal');
+    const modalImg = document.getElementById('modalImg');
+    const closeBtn = document.querySelector('.close-btn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    
+    let currentIndex = 0;
+    const images = Array.from(document.querySelectorAll('.gallery-img'));
+    
+    // Открытие модального окна
+    gallery.addEventListener('click', (e) => {
+        const img = e.target.closest('.gallery-img');
+        if (img) {
+            currentIndex = images.indexOf(img);
+            modalImg.src = img.dataset.full;
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+    });
+    
+    // Закрытие модального окна
+    closeBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    });
+    
+    // Навигация по галерее
+    function showImage(index) {
+        if (index < 0) index = images.length - 1;
+        if (index >= images.length) index = 0;
+        
+        currentIndex = index;
+        modalImg.src = images[currentIndex].dataset.full;
+    }
+    
+    prevBtn.addEventListener('click', () => showImage(currentIndex - 1));
+    nextBtn.addEventListener('click', () => showImage(currentIndex + 1));
+    
+    // Закрытие по клику вне изображения
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    });
+
+    // 2. Drag-and-drop
+    const draggables = document.querySelectorAll('.draggable');
+    const dropZone = document.getElementById('dropZone');
+    
+    draggables.forEach(draggable => {
+        draggable.addEventListener('dragstart', function(e) {
+            e.dataTransfer.setData('text/plain', this.id);
+            setTimeout(() => this.style.opacity = '0.4', 0);
+        });
+        
+        draggable.addEventListener('dragend', function() {
+            this.style.opacity = '1';
+        });
+    });
+    
+    dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('highlight');
+    });
+    
+    dropZone.addEventListener('dragleave', function() {
+        this.classList.remove('highlight');
+    });
+    
+    dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('highlight');
+        
+        const id = e.dataTransfer.getData('text/plain');
+        const draggable = document.getElementById(id);
+        
+        if (draggable) {
+            this.appendChild(draggable);
+            draggable.style.position = 'static';
+            draggable.style.opacity = '1';
+        }
+    });
+
+    // 3. Кастомное контекстное меню
+    const contextMenu = document.getElementById('contextMenu');
+    let currentTarget = null;
+    
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        
+        // Показываем меню только для определенных элементов
+        if (e.target.classList.contains('gallery-item') || 
+            e.target.classList.contains('draggable')) {
+            currentTarget = e.target;
+            
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = `${e.pageX}px`;
+            contextMenu.style.top = `${e.pageY}px`;
+        }
+    });
+    
+    document.addEventListener('click', function() {
+        contextMenu.style.display = 'none';
+    });
+    
+    // Обработчики пунктов меню
+    document.getElementById('editItem').addEventListener('click', function() {
+        alert(`Редактирование элемента: ${currentTarget.textContent || currentTarget.alt}`);
+    });
+    
+    document.getElementById('deleteItem').addEventListener('click', function() {
+        if (confirm('Удалить этот элемент?')) {
+            currentTarget.remove();
+        }
+    });
+    
+    document.getElementById('copyItem').addEventListener('click', function() {
+        alert('Элемент скопирован в буфер обмена');
+    });
+
+    // 4. Валидация формы в реальном времени
+    const form = document.getElementById('myForm');
+    const username = document.getElementById('username');
+    const email = document.getElementById('email');
+    const password = document.getElementById('password');
+    const successMessage = document.getElementById('successMessage');
+    
+    function validateUsername() {
+        const isValid = username.value.length >= 3;
+        username.parentElement.classList.toggle('invalid', !isValid);
+        return isValid;
+    }
+    
+    function validateEmail() {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const isValid = re.test(email.value);
+        email.parentElement.classList.toggle('invalid', !isValid);
+        return isValid;
+    }
+    
+    function validatePassword() {
+        const isValid = password.value.length >= 6;
+        password.parentElement.classList.toggle('invalid', !isValid);
+        return isValid;
+    }
+    
+    username.addEventListener('input', validateUsername);
+    email.addEventListener('input', validateEmail);
+    password.addEventListener('input', validatePassword);
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const isUsernameValid = validateUsername();
+        const isEmailValid = validateEmail();
+        const isPasswordValid = validatePassword();
+        
+        if (isUsernameValid && isEmailValid && isPasswordValid) {
+            successMessage.style.display = 'block';
+            form.reset();
+            
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+            }, 3000);
+        }
+    });
+</script>
+</body>
+</html>

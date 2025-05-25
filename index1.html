@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Управление стилями</title>
+    <style>
+        /* Стили для анимации */
+        .animated-box {
+            width: 200px;
+            height: 100px;
+            background: #f0f0f0;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        .animated-box.hover-effect {
+            transform: scale(1.1);
+            background: #ff9999;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        }
+
+        /* Стили для текста */
+        .large-text {
+            font-size: 1.5em;
+        }
+
+        /* Стили для формы */
+        .invalid {
+            border: 2px solid #ff0000;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Задание 1: Переключатель размера текста -->
+    <button id="textSizeToggle">Увеличить текст</button>
+    <p>Пример текста для изменения размера</p>
+
+    <!-- Задание 2: Анимированный блок -->
+    <div class="animated-box" id="animBox"></div>
+
+    <!-- Задание 3: Валидация формы -->
+    <input type="text" id="nameInput" placeholder="Введите имя (минимум 3 символа)">
+    
+    <script>
+        // 1. Переключатель размера текста
+        const textToggle = document.getElementById('textSizeToggle');
+        let isLarge = false;
+
+        textToggle.addEventListener('click', () => {
+            document.body.classList.toggle('large-text');
+            isLarge = !isLarge;
+            textToggle.textContent = isLarge ? 'Уменьшить текст' : 'Увеличить текст';
+        });
+
+        // 2. Анимация при наведении
+        const animBox = document.getElementById('animBox');
+        
+        animBox.addEventListener('mouseenter', () => {
+            animBox.classList.add('hover-effect');
+        });
+        
+        animBox.addEventListener('mouseleave', () => {
+            animBox.classList.remove('hover-effect');
+        });
+
+        // 3. Валидация формы
+        const nameInput = document.getElementById('nameInput');
+        
+        nameInput.addEventListener('input', () => {
+            const isValid = nameInput.value.length >= 3;
+            nameInput.classList.toggle('invalid', !isValid);
+        });
+    </script>
+</body>
+</html>

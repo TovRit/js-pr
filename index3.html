@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Управление стандартными обработчиками</title>
+    <style>
+        .container {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+        }
+        #dropZone {
+            width: 300px;
+            height: 150px;
+            border: 2px dashed #666;
+            padding: 20px;
+            margin: 10px 0;
+        }
+        .highlight {
+            background: #ffeeba;
+        }
+        .error {
+            border-color: #ff0000;
+        }
+    </style>
+</head>
+<body>
+    <!-- Форма с кастомной валидацией -->
+    <div class="container">
+        <form id="myForm">
+            <input type="text" id="name" placeholder="Имя (мин. 3 символа)">
+            <input type="email" id="email" placeholder="Email">
+            <button type="submit">Отправить</button>
+            <p id="formError"></p>
+        </form>
+    </div>
+
+    <!-- Drag-and-drop зона -->
+    <div class="container">
+        <div id="dropZone">Перетащите файлы сюда</div>
+        <div id="fileList"></div>
+    </div>
+
+    <!-- Текстовое поле с ограничениями -->
+    <div class="container">
+        <input type="text" id="formattedInput" placeholder="Введите текст (без цифр)">
+    </div>
+
+    <script>
+        // 1. Кастомная обработка формы
+        const form = document.getElementById('myForm');
+        const formError = document.getElementById('formError');
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            let isValid = true;
+
+            // Валидация имени
+            if (name.length < 3) {
+                showError('Имя должно содержать минимум 3 символа');
+                isValid = false;
+            }
+
+            // Валидация email
+            if (!/^\S+@\S+\.\S+$/.test(email)) {
+                showError('Введите корректный email');
+                isValid = false;
+            }
+
+            if (isValid) {
+                formError.textContent = 'Форма успешно отправлена!';
+                // form.submit(); // Раскомментировать для реальной отправки
+            }
+        });
+
+        function showError(message) {
+            formError.textContent = message;
+            formError.style.color = 'red';
+        }
+
+        // 2. Drag-and-drop обработка
+        const dropZone = document.getElementById('dropZone');
+        const fileList = document.getElementById('fileList');
+
+        // Обработчики для drag-and-drop
+        dropZone.addEventListener('dragover', e => {
+            e.preventDefault();
+            dropZone.classList.add('highlight');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('highlight');
+        });
+
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropZone.classList.remove('highlight');
+            
+            const files = e.dataTransfer.files;
+            if (files.length) {
+                fileList.innerHTML = `<strong>Загружено файлов:</strong> ${files.length}`;
+                // Здесь можно добавить обработку файлов
+            }
+        });
+
+        // 3. Текстовое поле с ограничениями
+        const formattedInput = document.getElementById('formattedInput');
+        
+        formattedInput.addEventListener('keydown', e => {
+            // Блокировка цифр
+            if (/\d/.test(e.key)) {
+                e.preventDefault();
+            }
+        });
+
+        formattedInput.addEventListener('input', e => {
+            // Форматирование текста
+            let value = e.target.value;
+            if (value.length > 0) {
+                value = value[0].toUpperCase() + value.slice(1);
+            }
+            e.target.value = value.replace(/\d/g, '');
+        });
+
+        // 4. Обработка специальных клавиш
+        // Обработка Tab в форме
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('keydown', e => {
+                if (e.key === 'Tab' && !e.shiftKey) {
+                    e.preventDefault();
+                    // Кастомная логика перехода между полями
+                }
+            });
+        });
+
+        // Обработка Ctrl+S
+        document.addEventListener('keydown', e => {
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                alert('Сохранение запрещено! Используйте экспорт данных.');
+            }
+        });
+    </script>
+</body>
+</html>

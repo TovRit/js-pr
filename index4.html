@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Комплексное задание по работе с изображениями</title>
+    <style>
+        /* Стили для галереи */
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .gallery-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .gallery-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            transition: filter 0.3s ease;
+        }
+
+        .gallery-caption {
+            position: absolute;
+            bottom: -100%;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 1rem;
+            transition: bottom 0.3s ease;
+        }
+
+        .gallery-item:hover .gallery-img {
+            filter: brightness(0.7);
+        }
+
+        .gallery-item:hover .gallery-caption {
+            bottom: 0;
+        }
+
+        /* Стили для многосостоятельной кнопки */
+        .state-button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            background: #4CAF50;
+            color: white;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .state-button:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.2);
+        }
+
+        .state-button:active {
+            background: #3d8b40;
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Стили для слайдера */
+        .slider-container {
+            position: relative;
+            max-width: 800px;
+            margin: 40px auto;
+            overflow: hidden;
+            border-radius: 12px;
+        }
+
+        .slider-track {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .slider-item {
+            min-width: 100%;
+            height: 400px;
+            position: relative;
+        }
+
+        .slider-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .slider-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+
+        .slider-btn {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.8);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        /* Стили для ленивой загрузки */
+        .lazy-container {
+            margin: 40px;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .lazy-item {
+            width: 100%;
+            height: 400px;
+            margin: 20px 0;
+            background: #e9ecef;
+            border-radius: 8px;
+            transition: opacity 0.3s ease;
+        }
+
+        .lazy-item.loaded {
+            background: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Галерея изображений -->
+    <div class="gallery" id="gallery"></div>
+
+    <!-- Кнопка с состояниями -->
+    <button class="state-button">Интерактивная кнопка</button>
+
+    <!-- Слайдер изображений -->
+    <div class="slider-container">
+        <div class="slider-track" id="sliderTrack"></div>
+        <div class="slider-controls">
+            <button class="slider-btn" id="prevBtn">‹</button>
+            <button class="slider-btn" id="nextBtn">›</button>
+        </div>
+    </div>
+
+    <!-- Область ленивой загрузки -->
+    <div class="lazy-container">
+        <div class="lazy-item" data-src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTC0t0Izp4lhAfb1Qf8foLCr8KdzWU7qFOY_A&s"></div>
+        <div class="lazy-item" data-src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTC0t0Izp4lhAfb1Qf8foLCr8KdzWU7qFOY_A&s"></div>
+        <div class="lazy-item" data-src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTC0t0Izp4lhAfb1Qf8foLCr8KdzWU7qFOY_A&s"></div>
+    </div>
+
+    <script>
+        // 1. Динамическая галерея изображений
+        const gallery = document.getElementById('gallery');
+        const imageUrls = [
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTC0t0Izp4lhAfb1Qf8foLCr8KdzWU7qFOY_A&s',
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTC0t0Izp4lhAfb1Qf8foLCr8KdzWU7qFOY_A&s',
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTC0t0Izp4lhAfb1Qf8foLCr8KdzWU7qFOY_A&s',
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTC0t0Izp4lhAfb1Qf8foLCr8KdzWU7qFOY_A&s',
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTC0t0Izp4lhAfb1Qf8foLCr8KdzWU7qFOY_A&s',
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTC0t0Izp4lhAfb1Qf8foLCr8KdzWU7qFOY_A&s'
+        ];
+
+        imageUrls.forEach((url, index) => {
+            const galleryItem = document.createElement('div');
+            galleryItem.className = 'gallery-item';
+            
+            const img = new Image();
+            img.src = url;
+            img.className = 'gallery-img';
+            img.alt = `Изображение ${index + 1}`;
+            
+            const caption = document.createElement('div');
+            caption.className = 'gallery-caption';
+            caption.textContent = `Фотография #${index + 1}`;
+            
+            img.onload = () => {
+                galleryItem.appendChild(img);
+                galleryItem.appendChild(caption);
+                gallery.appendChild(galleryItem);
+            };
+        });
+
+        // 2. Слайдер изображений
+        const sliderTrack = document.getElementById('sliderTrack');
+        const slides = [
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTC0t0Izp4lhAfb1Qf8foLCr8KdzWU7qFOY_A&s',
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTC0t0Izp4lhAfb1Qf8foLCr8KdzWU7qFOY_A&s',
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTC0t0Izp4lhAfb1Qf8foLCr8KdzWU7qFOY_A&s'
+        ];
+        let currentSlide = 0;
+
+        // Инициализация слайдов
+        slides.forEach((slide, index) => {
+            const slideItem = document.createElement('div');
+            slideItem.className = 'slider-item';
+            
+            const img = new Image();
+            img.src = slide;
+            img.className = 'slider-img';
+            img.alt = `Слайд ${index + 1}`;
+            
+            slideItem.appendChild(img);
+            sliderTrack.appendChild(slideItem);
+        });
+
+        // Автопрокрутка
+        let autoSlide = setInterval(nextSlide, 5000);
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            updateSlider();
+        }
+
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+            updateSlider();
+        }
+
+        function updateSlider() {
+            sliderTrack.style.transform = `translateX(-${currentSlide * 100}%)`;
+            clearInterval(autoSlide);
+            autoSlide = setInterval(nextSlide, 5000);
+        }
+
+        document.getElementById('nextBtn').addEventListener('click', nextSlide);
+        document.getElementById('prevBtn').addEventListener('click', prevSlide);
+
+        // 3. Ленивая загрузка
+        const lazyLoader = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const lazyItem = entry.target;
+                    const img = new Image();
+                    img.src = lazyItem.dataset.src;
+                    img.className = 'lazy-img';
+                    img.onload = () => {
+                        lazyItem.style.backgroundImage = `url(${img.src})`;
+                        lazyItem.classList.add('loaded');
+                    };
+                    observer.unobserve(lazyItem);
+                }
+            });
+        }, {
+            rootMargin: '0px 0px 200px 0px'
+        });
+
+        document.querySelectorAll('.lazy-item').forEach(item => {
+            lazyLoader.observe(item);
+        });
+    </script>
+</body>
+</html>

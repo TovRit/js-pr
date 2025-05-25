@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DOM Задания</title>
+    <style>
+        .active { background: #f0f0f0; }
+        .breadcrumbs { margin: 20px 0; }
+        .breadcrumb-item { display: inline; }
+        .dom-tree { margin-left: 20px; }
+    </style>
+</head>
+<body>
+    <!-- Навигационное меню -->
+    <ul id="navMenu">
+        <li>Главная</li>
+        <li>Продукты
+            <ul>
+                <li>Электроника</li>
+                <li>Одежда</li>
+            </ul>
+        </li>
+        <li>Контакты</li>
+    </ul>
+
+    <!-- Хлебные крошки -->
+    <div id="breadcrumbs" class="breadcrumbs"></div>
+
+    <!-- Список для сортировки -->
+    <ul id="sortList">
+        <li>Яблоко</li>
+        <li>Банан</li>
+        <li>Апельсин</li>
+        <li>Груша</li>
+    </ul>
+    <button onclick="sortListAlphabetically()">Сортировать</button>
+
+    <!-- DOM-дерево -->
+    <div id="domTree"></div>
+
+<script>
+// 1. Навигационное меню с подменю
+function initMenu() {
+    const menuItems = document.querySelectorAll('#navMenu > li');
+    
+    menuItems.forEach(item => {
+        const submenu = item.querySelector('ul');
+        if (submenu) {
+            item.classList.add('active');
+            // Добавляем индикатор подменю
+            const arrow = document.createElement('span');
+            arrow.textContent = ' ▼';
+            item.firstChild.after(arrow);
+        }
+    });
+}
+initMenu();
+
+// 2. Хлебные крошки
+function createBreadcrumbs(element) {
+    const breadcrumbs = document.getElementById('breadcrumbs');
+    let current = element;
+    const path = [];
+
+    while(current) {
+        path.push(current.tagName.toLowerCase());
+        current = current.parentElement;
+    }
+
+    breadcrumbs.innerHTML = path.reverse()
+        .map(tag => `<span class="breadcrumb-item">${tag} → </span>`)
+        .join('');
+}
+
+// Пример использования для элемента списка "Электроника"
+createBreadcrumbs(document.querySelector('#navMenu li li'));
+
+// 3. Сортировка списка
+function sortListAlphabetically() {
+    const list = document.getElementById('sortList');
+    const items = Array.from(list.children);
+    
+    items.sort((a, b) => 
+        a.textContent.localeCompare(b.textContent)
+    );
+
+    list.innerHTML = '';
+    items.forEach(item => list.appendChild(item));
+}
+
+// 4. Построение DOM-дерева
+function buildDOMTree(element, parentNode) {
+    const ul = document.createElement('ul');
+    const li = document.createElement('li');
+    li.textContent = element.tagName;
+    
+    if (parentNode) {
+        parentNode.appendChild(ul);
+        ul.appendChild(li);
+    } else {
+        element.appendChild(ul);
+        li.style.fontWeight = 'bold';
+        ul.appendChild(li);
+    }
+
+    Array.from(element.children).forEach(child => {
+        buildDOMTree(child, ul);
+    });
+}
+
+// Пример использования для body
+buildDOMTree(document.body, document.getElementById('domTree'));
+</script>
+</body>
+</html>

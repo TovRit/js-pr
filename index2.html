@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Работа с объектом Event</title>
+    <style>
+        .container {
+            padding: 20px;
+            margin: 10px;
+            border: 1px solid #ccc;
+        }
+        #mouseArea {
+            width: 300px;
+            height: 200px;
+            background: #f0f0f0;
+            margin: 20px 0;
+        }
+        #output {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #999;
+        }
+    </style>
+</head>
+<body>
+    <!-- Блок с разными элементами -->
+    <div class="container">
+        <button id="btn1">Кнопка 1</button>
+        <a href="https://google.com" id="link">Ссылка на Google</a>
+        <form id="myForm">
+            <input type="text" placeholder="Введите данные">
+            <button type="submit">Отправить</button>
+        </form>
+    </div>
+
+    <!-- Область для отслеживания мыши -->
+    <div id="mouseArea">Двигайте мышью в этой области</div>
+    
+    <!-- Блок с вложенными элементами -->
+    <div class="container" id="parent">
+        <div id="child">Дочерний элемент (кликните)</div>
+    </div>
+
+    <!-- Вывод информации -->
+    <div id="output"></div>
+
+    <script>
+        // Вывод информации о событиях
+        const output = document.getElementById('output');
+        
+        function logEvent(event) {
+            const info = `
+                <strong>${event.type}</strong> на ${event.target.tagName}<br>
+                Координаты: [${event.clientX}, ${event.clientY}]<br>
+                Клавиша: ${event.key || '-'}
+            `;
+            output.innerHTML = info;
+            console.log(event);
+        }
+
+        // 1. Обработчики для разных элементов
+        document.getElementById('btn1').addEventListener('click', logEvent);
+        document.getElementById('link').addEventListener('mouseover', logEvent);
+        document.querySelector('input').addEventListener('keypress', logEvent);
+
+        // 2. Отмена действия по умолчанию для формы
+        document.getElementById('myForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Форма не будет отправлена!');
+        });
+
+        // 3. Остановка всплытия
+        document.getElementById('parent').addEventListener('click', () => {
+            console.log('Клик на родителе');
+        });
+        document.getElementById('child').addEventListener('click', function(e) {
+            e.stopPropagation();
+            console.log('Клик на дочернем элементе (всплытие остановлено)');
+        });
+
+        // 4. Отслеживание координат мыши
+        document.getElementById('mouseArea').addEventListener('mousemove', function(e) {
+            this.textContent = `X: ${e.clientX}, Y: ${e.clientY}`;
+        });
+
+        // 5. Кастомное событие
+        const customEvent = new CustomEvent('myEvent', {
+            detail: { message: "Привет из кастомного события!" }
+        });
+        
+        const btn = document.getElementById('btn1');
+        btn.addEventListener('myEvent', function(e) {
+            alert(e.detail.message);
+        });
+
+        // Инициируем кастомное событие по клику
+        btn.addEventListener('click', () => {
+            btn.dispatchEvent(customEvent);
+        });
+    </script>
+</body>
+</html>

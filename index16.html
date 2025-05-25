@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регулярные выражения - валидатор и генератор</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        .section {
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            margin-bottom: 10px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin-top: 5px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .valid {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .invalid {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .matches {
+            background-color: #e2e3e5;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .match {
+            background-color: #d1ecf1;
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .regex-tester {
+            display: flex;
+            gap: 20px;
+        }
+        .regex-tester > div {
+            flex: 1;
+        }
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 10px 16px;
+            transition: 0.3s;
+            color: #333;
+        }
+        .tab button:hover {
+            background-color: #ddd;
+        }
+        .tab button.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tabcontent {
+            display: none;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+        }
+        .visible {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>Работа с регулярными выражениями</h1>
+    
+    <div class="tab">
+        <button class="tablinks active" onclick="openTab(event, 'validator')">Валидатор форм</button>
+        <button class="tablinks" onclick="openTab(event, 'logParser')">Парсер логов</button>
+        <button class="tablinks" onclick="openTab(event, 'textProcessor')">Текстовый процессор</button>
+        <button class="tablinks" onclick="openTab(event, 'regexGenerator')">Генератор регулярных выражений</button>
+    </div>
+    
+    <!-- Валидатор форм -->
+    <div id="validator" class="tabcontent visible">
+        <h2>Валидатор форм</h2>
+        
+        <div class="section">
+            <h3>Email (с поддержкой Unicode)</h3>
+            <div class="input-group">
+                <input type="text" id="emailInput" placeholder="Введите email">
+                <button onclick="validateEmail()">Проверить</button>
+                <div id="emailResult" class="result"></div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>Номер телефона (международный формат)</h3>
+            <div class="input-group">
+                <input type="text" id="phoneInput" placeholder="Введите номер телефона">
+                <button onclick="validatePhone()">Проверить</button>
+                <div id="phoneResult" class="result"></div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>URL (с протоколом http/https)</h3>
+            <div class="input-group">
+                <input type="text" id="urlInput" placeholder="Введите URL">
+                <button onclick="validateUrl()">Проверить</button>
+                <div id="urlResult" class="result"></div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>IP-адрес (IPv4)</h3>
+            <div class="input-group">
+                <input type="text" id="ipInput" placeholder="Введите IP-адрес">
+                <button onclick="validateIp()">Проверить</button>
+                <div id="ipResult" class="result"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Парсер логов -->
+    <div id="logParser" class="tabcontent">
+        <h2>Парсер логов</h2>
+        
+        <div class="section">
+            <h3>Анализ логов</h3>
+            <div class="input-group">
+                <textarea id="logInput" rows="10" placeholder="Введите логи для анализа"></textarea>
+                <button onclick="parseLog()">Анализировать</button>
+            </div>
+            
+            <h4>Результаты анализа:</h4>
+            <div id="logDates" class="matches"></div>
+            <div id="logLevels" class="matches"></div>
+            <div id="logMessages" class="matches"></div>
+        </div>
+    </div>
+    
+    <!-- Текстовый процессор -->
+    <div id="textProcessor" class="tabcontent">
+        <h2>Текстовый процессор</h2>
+        
+        <div class="section">
+            <h3>Обработка текста</h3>
+            <div class="input-group">
+                <textarea id="textInput" rows="10" placeholder="Введите текст для обработки"></textarea>
+            </div>
+            
+            <button onclick="removeHtmlTags()">Удалить HTML-теги</button>
+            <button onclick="findHashtags()">Найти хештеги</button>
+            <button onclick="replaceDoubleSpaces()">Заменить двойные пробелы</button>
+            
+            <div id="textResult" class="matches"></div>
+        </div>
+    </div>
+    
+    <!-- Генератор регулярных выражений -->
+    <div id="regexGenerator" class="tabcontent">
+        <h2>Генератор регулярных выражений</h2>
+        
+        <div class="section">
+            <div class="regex-tester">
+                <div>
+                    <h3>Регулярное выражение</h3>
+                    <div class="input-group">
+                        <input type="text" id="regexPattern" placeholder="Введите регулярное выражение" value="\b\d{3}\b">
+                        <input type="text" id="regexFlags" placeholder="Флаги (например, gi)" value="g">
+                    </div>
+                    <button onclick="testRegex()">Тестировать</button>
+                </div>
+                
+                <div>
+                    <h3>Тестовый текст</h3>
+                    <div class="input-group">
+                        <textarea id="regexTestText" rows="6" placeholder="Введите текст для тестирования">Пример текста с числами 123 и 4567, а также 890.</textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="regexResult" class="matches"></div>
+        </div>
+    </div>
+
+    <script>
+        // Функции для работы с табами
+        function openTab(evt, tabName) {
+            const tabcontents = document.getElementsByClassName("tabcontent");
+            for (let i = 0; i < tabcontents.length; i++) {
+                tabcontents[i].classList.remove("visible");
+            }
+            
+            const tablinks = document.getElementsByClassName("tablinks");
+            for (let i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            
+            document.getElementById(tabName).classList.add("visible");
+            evt.currentTarget.className += " active";
+        }
+        
+        // Валидатор форм
+        function validateEmail() {
+            const email = document.getElementById("emailInput").value;
+            // Регулярное выражение для email с поддержкой Unicode
+            const pattern = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+            const isValid = pattern.test(email);
+            
+            const resultElement = document.getElementById("emailResult");
+            resultElement.textContent = isValid ? "✓ Email валиден" : "✗ Неверный формат email";
+            resultElement.className = isValid ? "result valid" : "result invalid";
+        }
+        
+        function validatePhone() {
+            const phone = document.getElementById("phoneInput").value;
+            // Регулярное выражение для международного номера телефона
+            const pattern = /^\+(?:[0-9] ?){6,14}[0-9]$/;
+            const isValid = pattern.test(phone);
+            
+            const resultElement = document.getElementById("phoneResult");
+            resultElement.textContent = isValid ? "✓ Номер телефона валиден" : "✗ Неверный формат номера телефона";
+            resultElement.className = isValid ? "result valid" : "result invalid";
+        }
+        
+        function validateUrl() {
+            const url = document.getElementById("urlInput").value;
+            // Регулярное выражение для URL с http/https
+            const pattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+            const isValid = pattern.test(url);
+            
+            const resultElement = document.getElementById("urlResult");
+            resultElement.textContent = isValid ? "✓ URL валиден" : "✗ Неверный формат URL";
+            resultElement.className = isValid ? "result valid" : "result invalid";
+        }
+        
+        function validateIp() {
+            const ip = document.getElementById("ipInput").value;
+            // Регулярное выражение для IPv4
+            const pattern = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+            const isValid = pattern.test(ip);
+            
+            const resultElement = document.getElementById("ipResult");
+            resultElement.textContent = isValid ? "✓ IP-адрес валиден" : "✗ Неверный формат IP-адреса";
+            resultElement.className = isValid ? "result valid" : "result invalid";
+        }
+        
+        // Парсер логов
+        function parseLog() {
+            const logText = document.getElementById("logInput").value;
+            
+            // Извлечение даты и времени
+            const datePattern = /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}|\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2}/g;
+            const dates = logText.match(datePattern) || [];
+            
+            const datesElement = document.getElementById("logDates");
+            datesElement.innerHTML = "<h4>Даты и время:</h4>";
+            if (dates.length > 0) {
+                dates.forEach(date => {
+                    datesElement.innerHTML += `<div class="match">${date}</div>`;
+                });
+            } else {
+                datesElement.innerHTML += "<div>Даты не найдены</div>";
+            }
+            
+            // Извлечение уровней лога
+            const levelPattern = /(ERROR|WARN|INFO|DEBUG)/g;
+            const levels = logText.match(levelPattern) || [];
+            
+            const levelsElement = document.getElementById("logLevels");
+            levelsElement.innerHTML = "<h4>Уровни лога:</h4>";
+            if (levels.length > 0) {
+                const uniqueLevels = [...new Set(levels)];
+                uniqueLevels.forEach(level => {
+                    const count = levels.filter(l => l === level).length;
+                    levelsElement.innerHTML += `<div class="match">${level}: ${count} раз</div>`;
+                });
+            } else {
+                levelsElement.innerHTML += "<div>Уровни лога не найдены</div>";
+            }
+            
+            // Извлечение сообщений об ошибках
+            const errorPattern = /ERROR.*?(?=\n|$)/g;
+            const errors = logText.match(errorPattern) || [];
+            
+            const messagesElement = document.getElementById("logMessages");
+            messagesElement.innerHTML = "<h4>Сообщения об ошибках:</h4>";
+            if (errors.length > 0) {
+                errors.forEach(error => {
+                    messagesElement.innerHTML += `<div class="match">${error}</div>`;
+                });
+            } else {
+                messagesElement.innerHTML += "<div>Сообщения об ошибках не найдены</div>";
+            }
+        }
+        
+        // Текстовый процессор
+        function removeHtmlTags() {
+            const text = document.getElementById("textInput").value;
+            // Удаление HTML-тегов
+            const result = text.replace(/<[^>]*>/g, '');
+            document.getElementById("textInput").value = result;
+            document.getElementById("textResult").innerHTML = `<div class="match">HTML-теги удалены</div>`;
+        }
+        
+        function findHashtags() {
+            const text = document.getElementById("textInput").value;
+            // Поиск хештегов
+            const hashtags = text.match(/#\w+/g) || [];
+            
+            const resultElement = document.getElementById("textResult");
+            resultElement.innerHTML = "<h4>Найденные хештеги:</h4>";
+            if (hashtags.length > 0) {
+                hashtags.forEach(tag => {
+                    resultElement.innerHTML += `<div class="match">${tag}</div>`;
+                });
+            } else {
+                resultElement.innerHTML += "<div>Хештеги не найдены</div>";
+            }
+        }
+        
+        function replaceDoubleSpaces() {
+            const text = document.getElementById("textInput").value;
+            // Замена двойных пробелов на одинарные
+            const result = text.replace(/ {2,}/g, ' ');
+            document.getElementById("textInput").value = result;
+            document.getElementById("textResult").innerHTML = `<div class="match">Двойные пробелы заменены на одинарные</div>`;
+        }
+        
+        // Генератор регулярных выражений
+        function testRegex() {
+            const pattern = document.getElementById("regexPattern").value;
+            const flags = document.getElementById("regexFlags").value;
+            const text = document.getElementById("regexTestText").value;
+            
+            try {
+                const regex = new RegExp(pattern, flags);
+                const matches = text.match(regex) || [];
+                
+                const resultElement = document.getElementById("regexResult");
+                resultElement.innerHTML = `<h4>Найдено совпадений: ${matches.length}</h4>`;
+                
+                if (matches.length > 0) {
+                    matches.forEach((match, index) => {
+                        resultElement.innerHTML += `<div class="match">${index + 1}. ${match}</div>`;
+                    });
+                } else {
+                    resultElement.innerHTML += "<div>Совпадения не найдены</div>";
+                }
+            } catch (e) {
+                document.getElementById("regexResult").innerHTML = 
+                    `<div class="result invalid">Ошибка в регулярном выражении: ${e.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

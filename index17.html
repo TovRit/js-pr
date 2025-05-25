@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расширенный инструмент для работы с текстом</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        .section {
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            margin-bottom: 10px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin-top: 5px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .valid {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .invalid {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .matches {
+            background-color: #e2e3e5;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .match {
+            background-color: #d1ecf1;
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .regex-tester {
+            display: flex;
+            gap: 20px;
+        }
+        .regex-tester > div {
+            flex: 1;
+        }
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 10px 16px;
+            transition: 0.3s;
+            color: #333;
+        }
+        .tab button:hover {
+            background-color: #ddd;
+        }
+        .tab button.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tabcontent {
+            display: none;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+        }
+        .visible {
+            display: block;
+        }
+        .two-columns {
+            display: flex;
+            gap: 20px;
+        }
+        .two-columns > div {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <h1>Расширенный инструмент для работы с текстом</h1>
+    
+    <div class="tab">
+        <button class="tablinks active" onclick="openTab(event, 'formatter')">Форматирование текста</button>
+        <button class="tablinks" onclick="openTab(event, 'analyzer')">Анализатор текста</button>
+        <button class="tablinks" onclick="openTab(event, 'validator')">Валидатор форм</button>
+        <button class="tablinks" onclick="openTab(event, 'markdown')">Транслятор Markdown</button>
+    </div>
+    
+    <!-- Форматирование текста -->
+    <div id="formatter" class="tabcontent visible">
+        <h2>Форматирование текста</h2>
+        
+        <div class="section">
+            <div class="input-group">
+                <textarea id="formatInput" rows="10" placeholder="Введите текст для форматирования">Пример текста с «кавычками-ёлочками» и "прямыми кавычками".
+
+Новая строка с переносами.
+И ещё один перенос строки.
+
+Номер карты: 1234567812345678</textarea>
+            </div>
+            
+            <button onclick="replaceQuotes()">Заменить кавычки-ёлочки</button>
+            <button onclick="replaceNewlines()">Заменить переносы на &lt;br&gt;</button>
+            <button onclick="formatCreditCard()">Форматировать номер карты</button>
+            
+            <div id="formatResult" class="matches"></div>
+        </div>
+    </div>
+    
+    <!-- Анализатор текста -->
+    <div id="analyzer" class="tabcontent">
+        <h2>Анализатор текста</h2>
+        
+        <div class="section">
+            <div class="input-group">
+                <textarea id="analyzeInput" rows="10" placeholder="Введите текст для анализа">Пример текста для анализа. Содержит email: test@example.com и телефон +79161234567.
+
+Другой email - another.email@domain.org и ещё один телефон 8 (916) 123-45-67.
+
+Уникальные слова длиннее 4 символов должны быть извлечены.</textarea>
+            </div>
+            
+            <button onclick="countWords()">Подсчитать слова</button>
+            <button onclick="findContacts()">Найти email и телефоны</button>
+            <button onclick="findUniqueWords()">Извлечь уникальные слова (>4 символов)</button>
+            
+            <div id="analyzeResult" class="matches"></div>
+        </div>
+    </div>
+    
+    <!-- Валидатор форм -->
+    <div id="validator" class="tabcontent">
+        <h2>Валидатор форм</h2>
+        
+        <div class="section">
+            <h3>Email (с поддержкой Unicode)</h3>
+            <div class="input-group">
+                <input type="text" id="emailInput" placeholder="Введите email" value="тест@пример.рф">
+                <button onclick="validateEmail()">Проверить</button>
+                <div id="emailResult" class="result"></div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>Номер паспорта (2 цифры, 2 буквы, 6 цифр)</h3>
+            <div class="input-group">
+                <input type="text" id="passportInput" placeholder="Введите номер паспорта" value="12AB345678">
+                <button onclick="validatePassport()">Проверить</button>
+                <div id="passportResult" class="result"></div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>Номер СНИЛС (XXX-XXX-XXX XX)</h3>
+            <div class="input-group">
+                <input type="text" id="snilsInput" placeholder="Введите номер СНИЛС" value="123-456-789 01">
+                <button onclick="validateSnils()">Проверить</button>
+                <div id="snilsResult" class="result"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Транслятор Markdown -->
+    <div id="markdown" class="tabcontent">
+        <h2>Транслятор Markdown → HTML</h2>
+        
+        <div class="section">
+            <div class="two-columns">
+                <div>
+                    <h3>Исходный Markdown</h3>
+                    <div class="input-group">
+                        <textarea id="markdownInput" rows="15" placeholder="Введите Markdown текст"># Заголовок 1 уровня
+
+## Заголовок 2 уровня
+
+Пример **жирного текста** и [ссылки](https://example.com).
+
+Ещё один абзац с *курсивом*.</textarea>
+                    </div>
+                    <button onclick="convertMarkdown()">Конвертировать</button>
+                </div>
+                
+                <div>
+                    <h3>Результат HTML</h3>
+                    <div id="htmlOutput" class="matches" style="min-height: 300px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Функции для работы с табами
+        function openTab(evt, tabName) {
+            const tabcontents = document.getElementsByClassName("tabcontent");
+            for (let i = 0; i < tabcontents.length; i++) {
+                tabcontents[i].classList.remove("visible");
+            }
+            
+            const tablinks = document.getElementsByClassName("tablinks");
+            for (let i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            
+            document.getElementById(tabName).classList.add("visible");
+            evt.currentTarget.className += " active";
+        }
+        
+        // Форматирование текста
+        function replaceQuotes() {
+            const text = document.getElementById("formatInput").value;
+            // Замена кавычек-ёлочек на прямые
+            const result = text.replace(/«|»/g, '"').replace(/„|“/g, '"');
+            document.getElementById("formatInput").value = result;
+            document.getElementById("formatResult").innerHTML = `<div class="match">Кавычки-ёлочки заменены на прямые</div>`;
+        }
+        
+        function replaceNewlines() {
+            const text = document.getElementById("formatInput").value;
+            // Замена переносов строк на теги <br>
+            const result = text.replace(/\n/g, '<br>');
+            document.getElementById("formatInput").value = result;
+            document.getElementById("formatResult").innerHTML = `<div class="match">Переносы строк заменены на &lt;br&gt; теги</div>`;
+        }
+        
+        function formatCreditCard() {
+            const text = document.getElementById("formatInput").value;
+            // Форматирование номеров кредитных карт (XXXX XXXX XXXX XXXX)
+            const result = text.replace(/(\d{4})(\d{4})(\d{4})(\d{4})/g, '$1 $2 $3 $4');
+            document.getElementById("formatInput").value = result;
+            document.getElementById("formatResult").innerHTML = `<div class="match">Номера кредитных карт отформатированы</div>`;
+        }
+        
+        // Анализатор текста
+        function countWords() {
+            const text = document.getElementById("analyzeInput").value;
+            // Подсчет слов (последовательностей символов, разделенных пробелами)
+            const words = text.trim() === '' ? [] : text.trim().split(/\s+/);
+            
+            document.getElementById("analyzeResult").innerHTML = `
+                <div class="match">Всего слов: ${words.length}</div>
+            `;
+        }
+        
+        function findContacts() {
+            const text = document.getElementById("analyzeInput").value;
+            
+            // Поиск email
+            const emailPattern = /[\w.-]+@[\w.-]+\.\w+/g;
+            const emails = text.match(emailPattern) || [];
+            
+            // Поиск телефонов (разные форматы)
+            const phonePattern = /(\+?\d[\d\s\-()]{8,}\d)|(8[\d\s\-()]{9,}\d)/g;
+            const phones = text.match(phonePattern) || [];
+            
+            const resultElement = document.getElementById("analyzeResult");
+            resultElement.innerHTML = "<h4>Найденные контакты:</h4>";
+            
+            if (emails.length > 0) {
+                resultElement.innerHTML += "<div><strong>Email:</strong></div>";
+                emails.forEach(email => {
+                    resultElement.innerHTML += `<div class="match">${email}</div>`;
+                });
+            }
+            
+            if (phones.length > 0) {
+                resultElement.innerHTML += "<div><strong>Телефоны:</strong></div>";
+                phones.forEach(phone => {
+                    resultElement.innerHTML += `<div class="match">${phone.trim()}</div>`;
+                });
+            }
+            
+            if (emails.length === 0 && phones.length === 0) {
+                resultElement.innerHTML += "<div>Контакты не найдены</div>";
+            }
+        }
+        
+        function findUniqueWords() {
+            const text = document.getElementById("analyzeInput").value;
+            // Извлечение уникальных слов длиннее 4 символов
+            const words = text.toLowerCase().match(/\b\w{5,}\b/g) || [];
+            const uniqueWords = [...new Set(words)];
+            
+            const resultElement = document.getElementById("analyzeResult");
+            resultElement.innerHTML = `<h4>Уникальные слова (${uniqueWords.length}):</h4>`;
+            
+            if (uniqueWords.length > 0) {
+                uniqueWords.forEach(word => {
+                    resultElement.innerHTML += `<div class="match">${word}</div>`;
+                });
+            } else {
+                resultElement.innerHTML += "<div>Уникальные слова не найдены</div>";
+            }
+        }
+        
+        // Валидатор форм
+        function validateEmail() {
+            const email = document.getElementById("emailInput").value;
+            // Регулярное выражение для email с поддержкой Unicode
+            const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const isValid = pattern.test(email);
+            
+            const resultElement = document.getElementById("emailResult");
+            resultElement.textContent = isValid ? "✓ Email валиден" : "✗ Неверный формат email";
+            resultElement.className = isValid ? "result valid" : "result invalid";
+        }
+        
+        function validatePassport() {
+            const passport = document.getElementById("passportInput").value;
+            // Регулярное выражение для номера паспорта (2 цифры, 2 буквы, 6 цифр)
+            const pattern = /^\d{2}[A-Za-zА-Яа-я]{2}\d{6}$/;
+            const isValid = pattern.test(passport);
+            
+            const resultElement = document.getElementById("passportResult");
+            resultElement.textContent = isValid ? "✓ Номер паспорта валиден" : "✗ Неверный формат (должно быть 2 цифры, 2 буквы, 6 цифр)";
+            resultElement.className = isValid ? "result valid" : "result invalid";
+        }
+        
+        function validateSnils() {
+            const snils = document.getElementById("snilsInput").value;
+            // Регулярное выражение для номера СНИЛС (XXX-XXX-XXX XX)
+            const pattern = /^\d{3}-\d{3}-\d{3} \d{2}$/;
+            const isValid = pattern.test(snils);
+            
+            const resultElement = document.getElementById("snilsResult");
+            resultElement.textContent = isValid ? "✓ Номер СНИЛС валиден" : "✗ Неверный формат (должно быть XXX-XXX-XXX XX)";
+            resultElement.className = isValid ? "result valid" : "result invalid";
+        }
+        
+        // Транслятор Markdown
+        function convertMarkdown() {
+            const markdown = document.getElementById("markdownInput").value;
+            let html = markdown;
+            
+            // Преобразование заголовков
+            html = html.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+            html = html.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+            html = html.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+            
+            // Жирный текст
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/__(.*?)__/g, '<strong>$1</strong>');
+            
+            // Курсив
+            html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            html = html.replace(/_(.*?)_/g, '<em>$1</em>');
+            
+            // Ссылки
+            html = html.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>');
+            
+            // Переносы строк
+            html = html.replace(/\n/g, '<br>');
+            
+            document.getElementById("htmlOutput").innerHTML = html;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Практические задания</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        .section {
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, button {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-top: 5px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .cart-total {
+            font-weight: bold;
+            text-align: right;
+            margin-top: 10px;
+        }
+        .cart-count {
+            background-color: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.8em;
+            margin-left: 5px;
+        }
+        .visit-counter {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .product-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .product-card {
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="title">Практические задания</h1>
+    
+    <!-- Форма авторизации -->
+    <div class="section">
+        <h2 id="auth-title">Форма авторизации</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username" id="username-label">Логин:</label>
+                <input type="text" id="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password" id="password-label">Пароль:</label>
+                <input type="password" id="password" required>
+            </div>
+            <div class="form-group">
+                <input type="checkbox" id="rememberMe">
+                <label for="rememberMe" id="remember-label" style="display: inline;">Запомнить меня</label>
+            </div>
+            <button type="submit" id="login-btn">Войти</button>
+        </form>
+    </div>
+    
+    <!-- Персонализация сайта -->
+    <div class="section">
+        <h2 id="personalization-title">Персонализация</h2>
+        <div class="form-group">
+            <label id="language-label">Язык:</label>
+            <select id="language">
+                <option value="ru">Русский</option>
+                <option value="en">English</option>
+            </select>
+            <button id="save-lang-btn">Сохранить</button>
+        </div>
+    </div>
+    
+    <!-- Счетчик посещений -->
+    <div id="visitCounter" class="visit-counter"></div>
+    
+    <!-- Корзина интернет-магазина -->
+    <div class="section">
+        <h2 id="cart-title">Корзина <span id="cartCounter" class="cart-count">0</span></h2>
+        
+        <h3 id="products-title">Доступные товары</h3>
+        <div class="product-list">
+            <div class="product-card">
+                <h4>Ноутбук</h4>
+                <p id="price-laptop">50 000 руб.</p>
+                <button onclick="addToCart('Ноутбук', 50000)" id="add-laptop">Добавить в корзину</button>
+            </div>
+            <div class="product-card">
+                <h4>Смартфон</h4>
+                <p id="price-phone">30 000 руб.</p>
+                <button onclick="addToCart('Смартфон', 30000)" id="add-phone">Добавить в корзину</button>
+            </div>
+            <div class="product-card">
+                <h4>Наушники</h4>
+                <p id="price-headphones">5 000 руб.</p>
+                <button onclick="addToCart('Наушники', 5000)" id="add-headphones">Добавить в корзину</button>
+            </div>
+        </div>
+        
+        <h3 id="your-cart-title">Ваша корзина</h3>
+        <div id="cartItems"></div>
+        <div id="cartTotal" class="cart-total"></div>
+    </div>
+
+    <script>
+        // Тексты для разных языков
+        const translations = {
+            ru: {
+                title: "Практические задания",
+                "auth-title": "Форма авторизации",
+                "username-label": "Логин:",
+                "password-label": "Пароль:",
+                "remember-label": "Запомнить меня",
+                "login-btn": "Войти",
+                "personalization-title": "Персонализация",
+                "language-label": "Язык:",
+                "save-lang-btn": "Сохранить",
+                "visit-message": "Вы посетили наш сайт {count} раз",
+                "cart-title": "Корзина",
+                "products-title": "Доступные товары",
+                "price-laptop": "50 000 руб.",
+                "price-phone": "30 000 руб.",
+                "price-headphones": "5 000 руб.",
+                "add-laptop": "Добавить в корзину",
+                "add-phone": "Добавить в корзину",
+                "add-headphones": "Добавить в корзину",
+                "your-cart-title": "Ваша корзина",
+                "total": "Итого: {total} руб.",
+                "remove": "Удалить"
+            },
+            en: {
+                title: "Practical tasks",
+                "auth-title": "Login form",
+                "username-label": "Username:",
+                "password-label": "Password:",
+                "remember-label": "Remember me",
+                "login-btn": "Login",
+                "personalization-title": "Personalization",
+                "language-label": "Language:",
+                "save-lang-btn": "Save",
+                "visit-message": "You have visited our site {count} times",
+                "cart-title": "Shopping cart",
+                "products-title": "Available products",
+                "price-laptop": "50 000 RUB",
+                "price-phone": "30 000 RUB",
+                "price-headphones": "5 000 RUB",
+                "add-laptop": "Add to cart",
+                "add-phone": "Add to cart",
+                "add-headphones": "Add to cart",
+                "your-cart-title": "Your cart",
+                "total": "Total: {total} RUB",
+                "remove": "Remove"
+            }
+        };
+
+        // Работа с cookies
+        function setCookie(name, value, days) {
+            let expires = "";
+            if (days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                expires = "; expires=" + date.toUTCString();
+            }
+            document.cookie = name + "=" + (value || "") + expires + "; path=/";
+        }
+
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        // 1. Форма авторизации с запоминанием
+        document.addEventListener('DOMContentLoaded', function() {
+            // Заполняем логин, если есть в cookies
+            const rememberedUsername = getCookie('rememberedUsername');
+            if (rememberedUsername) {
+                document.getElementById('username').value = rememberedUsername;
+                document.getElementById('rememberMe').checked = true;
+            }
+
+            // Обработчик формы входа
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const rememberMe = document.getElementById('rememberMe').checked;
+
+                if (rememberMe) {
+                    setCookie('rememberedUsername', username, 30);
+                } else {
+                    setCookie('rememberedUsername', '', -1); // Удаляем cookie
+                }
+
+                alert('Вход выполнен!');
+            });
+
+            // 2. Персонализация сайта (язык)
+            const savedLanguage = getCookie('language') || 'ru';
+            document.getElementById('language').value = savedLanguage;
+            applyLanguage(savedLanguage);
+
+            document.getElementById('save-lang-btn').addEventListener('click', function() {
+                const language = document.getElementById('language').value;
+                setCookie('language', language, 30);
+                applyLanguage(language);
+                alert('Язык сохранен!');
+            });
+
+            // 3. Счетчик посещений
+            updateVisitCounter();
+
+            // 4. Корзина интернет-магазина
+            loadCart();
+        });
+
+        // Применение выбранного языка
+        function applyLanguage(lang) {
+            const elements = document.querySelectorAll('[id]');
+            elements.forEach(element => {
+                if (translations[lang] && translations[lang][element.id]) {
+                    if (element.tagName === 'INPUT' || element.tagName === 'SELECT') {
+                        element.placeholder = translations[lang][element.id];
+                    } else {
+                        element.textContent = translations[lang][element.id];
+                    }
+                }
+            });
+        }
+
+        // Обновление счетчика посещений
+        function updateVisitCounter() {
+            let visitCount = parseInt(getCookie('visitCount')) || 0;
+            visitCount++;
+            setCookie('visitCount', visitCount, 365);
+
+            const currentLanguage = document.getElementById('language').value;
+            const message = translations[currentLanguage]['visit-message'].replace('{count}', visitCount);
+            document.getElementById('visitCounter').textContent = message;
+        }
+
+        // 4. Корзина интернет-магазина
+        let cart = [];
+
+        function loadCart() {
+            const savedCart = getCookie('cart');
+            if (savedCart) {
+                cart = JSON.parse(savedCart);
+                updateCartDisplay();
+            }
+        }
+
+        function saveCart() {
+            setCookie('cart', JSON.stringify(cart), 7); // Сохраняем на 7 дней
+        }
+
+        function addToCart(name, price) {
+            const existingItem = cart.find(item => item.name === name);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ name, price, quantity: 1 });
+            }
+            
+            saveCart();
+            updateCartDisplay();
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            saveCart();
+            updateCartDisplay();
+        }
+
+        function updateCartDisplay() {
+            const cartItemsElement = document.getElementById('cartItems');
+            const cartTotalElement = document.getElementById('cartTotal');
+            const cartCounterElement = document.getElementById('cartCounter');
+            
+            // Очищаем корзину перед обновлением
+            cartItemsElement.innerHTML = '';
+            
+            let total = 0;
+            let totalItems = 0;
+            
+            cart.forEach((item, index) => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+                totalItems += item.quantity;
+                
+                const itemElement = document.createElement('div');
+                itemElement.className = 'cart-item';
+                itemElement.innerHTML = `
+                    <div>
+                        ${item.name} - ${item.price} ${translations[document.getElementById('language').value === 'en' ? 'RUB' : 'руб.']} × ${item.quantity}
+                    </div>
+                    <div>
+                        ${itemTotal} ${translations[document.getElementById('language').value === 'en' ? 'RUB' : 'руб.']} 
+                        <button onclick="removeFromCart(${index})">${translations[document.getElementById('language').value === 'en' ? 'Remove' : 'Удалить']}</button>
+                    </div>
+                `;
+                
+                cartItemsElement.appendChild(itemElement);
+            });
+            
+            const currentLanguage = document.getElementById('language').value;
+            const totalText = translations[currentLanguage]['total'].replace('{total}', total);
+            cartTotalElement.textContent = totalText;
+            cartCounterElement.textContent = totalItems;
+        }
+    </script>
+</body>
+</html>

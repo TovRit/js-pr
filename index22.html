@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas задания</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        canvas {
+            background-color: white;
+            border: 1px solid #ddd;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .controls {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+        button {
+            padding: 8px 15px;
+            margin: 5px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            border-radius: 5px 5px 0 0;
+            display: flex;
+            justify-content: center;
+        }
+        .tab button {
+            background-color: inherit;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 10px 16px;
+            transition: 0.3s;
+            border-radius: 0;
+        }
+        .tab button:hover {
+            background-color: #ddd;
+        }
+        .tab button.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tabcontent {
+            display: none;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+            background-color: white;
+        }
+        .visible {
+            display: block;
+        }
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            width: 400px;
+            margin-bottom: 10px;
+        }
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .color-picker {
+            display: flex;
+            align-items: center;
+        }
+        .chart-legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 10px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>Canvas задания</h1>
+    
+    <div class="tab">
+        <button class="tablinks active" onclick="openTab(event, 'clock')">Часы</button>
+        <button class="tablinks" onclick="openTab(event, 'game')">Игра</button>
+        <button class="tablinks" onclick="openTab(event, 'editor')">Редактор</button>
+        <button class="tablinks" onclick="openTab(event, 'chart')">Диаграмма</button>
+    </div>
+    
+    <!-- Часы на Canvas -->
+    <div id="clock" class="tabcontent visible">
+        <div class="container">
+            <canvas id="clockCanvas" width="400" height="400"></canvas>
+        </div>
+    </div>
+    
+    <!-- Мини-игра "Поймай объект" -->
+    <div id="game" class="tabcontent">
+        <div class="container">
+            <div class="game-info">
+                <div>Очки: <span id="score">0</span></div>
+                <div>Время: <span id="time">30</span> сек</div>
+                <div>Уровень: <span id="level">1</span></div>
+            </div>
+            <canvas id="gameCanvas" width="400" height="400"></canvas>
+            <div class="controls">
+                <button onclick="startGame()">Начать игру</button>
+                <select id="difficulty">
+                    <option value="1">Легкий</option>
+                    <option value="2" selected>Средний</option>
+                    <option value="3">Сложный</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Графический редактор -->
+    <div id="editor" class="tabcontent">
+        <div class="container">
+            <canvas id="editorCanvas" width="600" height="400"></canvas>
+            <div class="controls">
+                <div class="toolbar">
+                    <div class="color-picker">
+                        Цвет: <input type="color" id="colorPicker" value="#000000">
+                    </div>
+                    <div>
+                        Толщина: <input type="range" id="lineWidth" min="1" max="20" value="3">
+                    </div>
+                    <div>
+                        Инструмент:
+                        <select id="tool">
+                            <option value="pencil">Карандаш</option>
+                            <option value="line">Линия</option>
+                            <option value="rect">Прямоугольник</option>
+                            <option value="circle">Круг</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="clearCanvas()">Очистить</button>
+                <button onclick="saveCanvas()">Сохранить PNG</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Диаграмма данных -->
+    <div id="chart" class="tabcontent">
+        <div class="container">
+            <canvas id="chartCanvas" width="600" height="400"></canvas>
+            <div class="controls">
+                <button onclick="generateRandomData()">Сгенерировать данные</button>
+            </div>
+            <div id="chartLegend" class="chart-legend"></div>
+        </div>
+    </div>
+
+    <script>
+        // Функции для работы с табами
+        function openTab(evt, tabName) {
+            const tabcontents = document.getElementsByClassName("tabcontent");
+            for (let i = 0; i < tabcontents.length; i++) {
+                tabcontents[i].classList.remove("visible");
+            }
+            
+            const tablinks = document.getElementsByClassName("tablinks");
+            for (let i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            
+            document.getElementById(tabName).classList.add("visible");
+            evt.currentTarget.className += " active";
+            
+            // Перерисовываем canvas при переключении вкладок
+            if (tabName === 'clock') drawClock();
+            if (tabName === 'chart') drawChart();
+        }
+        
+        // 1. Часы на Canvas
+        const clockCanvas = document.getElementById('clockCanvas');
+        const clockCtx = clockCanvas.getContext('2d');
+        let clockRadius = clockCanvas.width / 2 - 10;
+
+        function drawClock() {
+            clockCtx.clearRect(0, 0, clockCanvas.width, clockCanvas.height);
+            
+            // Рисуем циферблат
+            clockCtx.beginPath();
+            clockCtx.arc(clockCanvas.width / 2, clockCanvas.height / 2, clockRadius, 0, 2 * Math.PI);
+            clockCtx.fillStyle = 'white';
+            clockCtx.fill();
+            clockCtx.strokeStyle = '#333';
+            clockCtx.lineWidth = 5;
+            clockCtx.stroke();
+            
+            // Рисуем цифры
+            clockCtx.font = '20px Arial';
+            clockCtx.textAlign = 'center';
+            clockCtx.textBaseline = 'middle';
+            clockCtx.fillStyle = '#333';
+            
+            for (let i = 1; i <= 12; i++) {
+                const angle = (i - 3) * (Math.PI * 2) / 12;
+                const x = clockCanvas.width / 2 + Math.cos(angle) * (clockRadius - 30);
+                const y = clockCanvas.height / 2 + Math.sin(angle) * (clockRadius - 30);
+                clockCtx.fillText(i.toString(), x, y);
+            }
+            
+            // Получаем текущее время
+            const now = new Date();
+            const hours = now.getHours() % 12;
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            const milliseconds = now.getMilliseconds();
+            
+            // Плавное движение стрелок
+            const smoothSeconds = seconds + milliseconds / 1000;
+            const smoothMinutes = minutes + smoothSeconds / 60;
+            const smoothHours = hours + smoothMinutes / 60;
+            
+            // Рисуем часовую стрелку
+            drawHand(smoothHours * 30, clockRadius * 0.5, 8, '#333');
+            
+            // Рисуем минутную стрелку
+            drawHand(smoothMinutes * 6, clockRadius * 0.7, 5, '#333');
+            
+            // Рисуем секундную стрелку
+            drawHand(smoothSeconds * 6, clockRadius * 0.8, 2, 'red');
+            
+            // Центральная точка
+            clockCtx.beginPath();
+            clockCtx.arc(clockCanvas.width / 2, clockCanvas.height / 2, 5, 0, 2 * Math.PI);
+            clockCtx.fillStyle = '#333';
+            clockCtx.fill();
+            
+            requestAnimationFrame(drawClock);
+        }
+        
+        function drawHand(angle, length, width, color) {
+            angle = (angle - 90) * Math.PI / 180;
+            const centerX = clockCanvas.width / 2;
+            const centerY = clockCanvas.height / 2;
+            
+            clockCtx.beginPath();
+            clockCtx.moveTo(centerX, centerY);
+            clockCtx.lineTo(centerX + Math.cos(angle) * length, centerY + Math.sin(angle) * length);
+            clockCtx.strokeStyle = color;
+            clockCtx.lineWidth = width;
+            clockCtx.lineCap = 'round';
+            clockCtx.stroke();
+        }
+        
+        // 2. Мини-игра "Поймай объект"
+        const gameCanvas = document.getElementById('gameCanvas');
+        const gameCtx = gameCanvas.getContext('2d');
+        let score = 0;
+        let timeLeft = 30;
+        let level = 1;
+        let gameInterval;
+        let target = { x: 0, y: 0, size: 30 };
+        let isGameRunning = false;
+        
+        function startGame() {
+            if (isGameRunning) return;
+            
+            score = 0;
+            timeLeft = 30;
+            level = parseInt(document.getElementById('difficulty').value);
+            isGameRunning = true;
+            
+            document.getElementById('score').textContent = score;
+            document.getElementById('time').textContent = timeLeft;
+            document.getElementById('level').textContent = level;
+            
+            createTarget();
+            gameInterval = setInterval(updateGame, 1000);
+            drawGame();
+        }
+        
+        function updateGame() {
+            timeLeft--;
+            document.getElementById('time').textContent = timeLeft;
+            
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+        
+        function endGame() {
+            clearInterval(gameInterval);
+            isGameRunning = false;
+            alert(`Игра окончена! Ваш счет: ${score}`);
+        }
+        
+        function createTarget() {
+            const minSize = 50 - (level * 10);
+            const maxSize = 80 - (level * 10);
+            target.size = Math.floor(Math.random() * (maxSize - minSize + 1)) + minSize;
+            
+            target.x = Math.floor(Math.random() * (gameCanvas.width - target.size));
+            target.y = Math.floor(Math.random() * (gameCanvas.height - target.size));
+        }
+        
+        function drawGame() {
+            if (!isGameRunning) return;
+            
+            gameCtx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+            
+            // Рисуем цель
+            gameCtx.fillStyle = 'red';
+            gameCtx.beginPath();
+            gameCtx.arc(target.x + target.size/2, target.y + target.size/2, target.size/2, 0, Math.PI * 2);
+            gameCtx.fill();
+            
+            requestAnimationFrame(drawGame);
+        }
+        
+        gameCanvas.addEventListener('click', function(e) {
+            if (!isGameRunning) return;
+            
+            const rect = gameCanvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            const distance = Math.sqrt(
+                Math.pow(mouseX - (target.x + target.size/2), 2) + 
+                Math.pow(mouseY - (target.y + target.size/2), 2)
+            );
+            
+            if (distance <= target.size/2) {
+                score += level;
+                document.getElementById('score').textContent = score;
+                createTarget();
+            }
+        });
+        
+        // 3. Графический редактор
+        const editorCanvas = document.getElementById('editorCanvas');
+        const editorCtx = editorCanvas.getContext('2d');
+        let isDrawing = false;
+        let startX, startY;
+        let currentTool = 'pencil';
+        let currentColor = '#000000';
+        let currentLineWidth = 3;
+        
+        // Инициализация редактора
+        editorCtx.fillStyle = 'white';
+        editorCtx.fillRect(0, 0, editorCanvas.width, editorCanvas.height);
+        
+        // Обработчики событий
+        editorCanvas.addEventListener('mousedown', startDrawing);
+        editorCanvas.addEventListener('mousemove', draw);
+        editorCanvas.addEventListener('mouseup', stopDrawing);
+        editorCanvas.addEventListener('mouseout', stopDrawing);
+        
+        document.getElementById('colorPicker').addEventListener('input', function(e) {
+            currentColor = e.target.value;
+        });
+        
+        document.getElementById('lineWidth').addEventListener('input', function(e) {
+            currentLineWidth = e.target.value;
+        });
+        
+        document.getElementById('tool').addEventListener('change', function(e) {
+            currentTool = e.target.value;
+        });
+        
+        function startDrawing(e) {
+            isDrawing = true;
+            startX = e.offsetX;
+            startY = e.offsetY;
+            
+            if (currentTool === 'pencil') {
+                editorCtx.beginPath();
+                editorCtx.moveTo(startX, startY);
+            }
+        }
+        
+        function draw(e) {
+            if (!isDrawing) return;
+            
+            editorCtx.strokeStyle = currentColor;
+            editorCtx.lineWidth = currentLineWidth;
+            editorCtx.lineCap = 'round';
+            editorCtx.lineJoin = 'round';
+            
+            if (currentTool === 'pencil') {
+                editorCtx.lineTo(e.offsetX, e.offsetY);
+                editorCtx.stroke();
+            } else {
+                // Для других инструментов рисуем временное изображение
+                editorCtx.putImageData(editorCtx.getImageData(0, 0, editorCanvas.width, editorCanvas.height), 0, 0);
+                
+                editorCtx.beginPath();
+                editorCtx.strokeStyle = currentColor;
+                editorCtx.lineWidth = currentLineWidth;
+                
+                switch (currentTool) {
+                    case 'line':
+                        editorCtx.moveTo(startX, startY);
+                        editorCtx.lineTo(e.offsetX, e.offsetY);
+                        break;
+                    case 'rect':
+                        editorCtx.rect(startX, startY, e.offsetX - startX, e.offsetY - startY);
+                        break;
+                    case 'circle':
+                        const radius = Math.sqrt(Math.pow(e.offsetX - startX, 2) + Math.pow(e.offsetY - startY, 2));
+                        editorCtx.arc(startX, startY, radius, 0, Math.PI * 2);
+                        break;
+                }
+                
+                editorCtx.stroke();
+            }
+        }
+        
+        function stopDrawing() {
+            isDrawing = false;
+        }
+        
+        function clearCanvas() {
+            editorCtx.fillStyle = 'white';
+            editorCtx.fillRect(0, 0, editorCanvas.width, editorCanvas.height);
+        }
+        
+        function saveCanvas() {
+            const link = document.createElement('a');
+            link.download = 'drawing.png';
+            link.href = editorCanvas.toDataURL('image/png');
+            link.click();
+        }
+        
+        // 4. Диаграмма данных
+        const chartCanvas = document.getElementById('chartCanvas');
+        const chartCtx = chartCanvas.getContext('2d');
+        let chartData = [
+            { label: 'Янв', value: 10, color: '#3498db' },
+            { label: 'Фев', value: 20, color: '#2ecc71' },
+            { label: 'Мар', value: 15, color: '#e74c3c' },
+            { label: 'Апр', value: 25, color: '#f39c12' },
+            { label: 'Май', value: 30, color: '#9b59b6' }
+        ];
+        
+        function drawChart() {
+            chartCtx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+            
+            const padding = 40;
+            const chartWidth = chartCanvas.width - padding * 2;
+            const chartHeight = chartCanvas.height - padding * 2;
+            const maxValue = Math.max(...chartData.map(item => item.value));
+            const barWidth = (chartWidth - 20) / chartData.length - 10;
+            
+            // Рисуем оси
+            chartCtx.beginPath();
+            chartCtx.moveTo(padding, padding);
+            chartCtx.lineTo(padding, chartCanvas.height - padding);
+            chartCtx.lineTo(chartCanvas.width - padding, chartCanvas.height - padding);
+            chartCtx.strokeStyle = '#333';
+            chartCtx.lineWidth = 2;
+            chartCtx.stroke();
+            
+            // Рисуем подписи осей
+            chartCtx.font = '12px Arial';
+            chartCtx.fillStyle = '#333';
+            chartCtx.textAlign = 'center';
+            chartCtx.fillText('Категории', chartCanvas.width / 2, chartCanvas.height - 10);
+            
+            chartCtx.save();
+            chartCtx.translate(20, chartCanvas.height / 2);
+            chartCtx.rotate(-Math.PI / 2);
+            chartCtx.textAlign = 'center';
+            chartCtx.fillText('Значения', 0, 0);
+            chartCtx.restore();
+            
+            // Рисуем столбцы
+            chartData.forEach((item, index) => {
+                const barHeight = (item.value / maxValue) * chartHeight;
+                const x = padding + 10 + index * (barWidth + 10);
+                const y = chartCanvas.height - padding - barHeight;
+                
+                // Рисуем столбец
+                chartCtx.fillStyle = item.color;
+                chartCtx.fillRect(x, y, barWidth, barHeight);
+                
+                // Добавляем hover-эффект
+                chartCanvas.addEventListener('mousemove', function(e) {
+                    const rect = chartCanvas.getBoundingClientRect();
+                    const mouseX = e.clientX - rect.left;
+                    const mouseY = e.clientY - rect.top;
+                    
+                    if (mouseX >= x && mouseX <= x + barWidth && mouseY >= y && mouseY <= y + barHeight) {
+                        chartCanvas.style.cursor = 'pointer';
+                    } else {
+                        chartCanvas.style.cursor = 'default';
+                    }
+                });
+                
+                // Подписи значений
+                chartCtx.fillStyle = '#333';
+                chartCtx.font = '12px Arial';
+                chartCtx.textAlign = 'center';
+                chartCtx.fillText(item.label, x + barWidth / 2, chartCanvas.height - padding + 20);
+                
+                // Значения над столбцами
+                chartCtx.fillText(item.value.toString(), x + barWidth / 2, y - 5);
+            });
+            
+            // Обновляем легенду
+            updateLegend();
+        }
+        
+        function updateLegend() {
+            const legend = document.getElementById('chartLegend');
+            legend.innerHTML = '';
+            
+            chartData.forEach(item => {
+                const legendItem = document.createElement('div');
+                legendItem.className = 'legend-item';
+                legendItem.innerHTML = `
+                    <div class="legend-color" style="background-color: ${item.color};"></div>
+                    <div>${item.label}</div>
+                `;
+                legend.appendChild(legendItem);
+            });
+        }
+        
+        function generateRandomData() {
+            const labels = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+            const colors = ['#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6', '#1abc9c', '#d35400', '#34495e', '#7f8c8d', '#27ae60', '#8e44ad', '#c0392b'];
+            
+            chartData = [];
+            const count = Math.floor(Math.random() * 6) + 3; // От 3 до 8 элементов
+            
+            for (let i = 0; i < count; i++) {
+                chartData.push({
+                    label: labels[i],
+                    value: Math.floor(Math.random() * 50) + 5,
+                    color: colors[i]
+                });
+            }
+            
+            drawChart();
+        }
+        
+        // Инициализация
+        window.addEventListener('load', function() {
+            drawClock();
+            drawChart();
+        });
+    </script>
+</body>
+</html>

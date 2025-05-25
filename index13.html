@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOM Практика</title>
+    <style>
+        /* Общие стили */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 8px 12px;
+            margin: 5px;
+            cursor: pointer;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+
+        /* Стили для текстового редактора */
+        .editor-toolbar {
+            margin-bottom: 10px;
+        }
+        #editor {
+            min-height: 150px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        /* Стили для таблицы */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr.selected {
+            background-color: #e3f2fd;
+        }
+        td.selected {
+            background-color: #bbdefb;
+        }
+        .table-controls {
+            margin: 10px 0;
+        }
+
+        /* Стили для поиска */
+        .search-container {
+            margin: 15px 0;
+        }
+        .search-result {
+            background-color: yellow;
+        }
+        .search-navigation {
+            margin: 10px 0;
+        }
+
+        /* Стили для кастомного контекстного меню */
+        .custom-context-menu {
+            display: none;
+            position: absolute;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            border-radius: 5px;
+            z-index: 100;
+        }
+        .menu-item {
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+        .menu-item:hover {
+            background: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <!-- 1. Текстовый редактор -->
+    <div class="section">
+        <h2>Текстовый редактор</h2>
+        <div class="editor-toolbar">
+            <button id="boldBtn"><b>Ж</b></button>
+            <button id="italicBtn"><i>К</i></button>
+            <button id="linkBtn">Ссылка</button>
+            <button id="undoBtn">Отменить</button>
+        </div>
+        <div id="editor" contenteditable="true">
+            Начните вводить текст здесь. Выделите текст и используйте кнопки для форматирования.
+        </div>
+    </div>
+
+    <!-- 2. Выделение таблицы -->
+    <div class="section">
+        <h2>Выделение таблицы</h2>
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th>Имя</th>
+                    <th>Возраст</th>
+                    <th>Город</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Иван</td>
+                    <td>25</td>
+                    <td>Москва</td>
+                </tr>
+                <tr>
+                    <td>Анна</td>
+                    <td>30</td>
+                    <td>Санкт-Петербург</td>
+                </tr>
+                <tr>
+                    <td>Петр</td>
+                    <td>28</td>
+                    <td>Новосибирск</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="table-controls">
+            <button id="selectRowBtn">Выделить строку</button>
+            <button id="selectColumnBtn">Выделить столбец</button>
+            <button id="copySelectedBtn">Копировать</button>
+            <button id="deleteSelectedBtn">Удалить</button>
+        </div>
+    </div>
+
+    <!-- 3. Поиск по странице -->
+    <div class="section">
+        <h2>Поиск по странице</h2>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Введите текст для поиска">
+            <button id="searchBtn">Найти</button>
+            <button id="clearSearchBtn">Очистить</button>
+        </div>
+        <div class="search-navigation">
+            <button id="prevMatchBtn">← Назад</button>
+            <button id="nextMatchBtn">Вперед →</button>
+            <span id="matchCounter"></span>
+        </div>
+    </div>
+
+    <!-- 4. Кастомное контекстное меню -->
+    <div class="custom-context-menu" id="contextMenu">
+        <div class="menu-item" id="copyMenuItem">Копировать</div>
+        <div class="menu-item" id="pasteMenuItem">Вставить</div>
+        <div class="menu-item" id="searchGoogleMenuItem">Найти в Google</div>
+    </div>
+
+<script>
+    // 1. Текстовый редактор
+    const editor = document.getElementById('editor');
+    const boldBtn = document.getElementById('boldBtn');
+    const italicBtn = document.getElementById('italicBtn');
+    const linkBtn = document.getElementById('linkBtn');
+    const undoBtn = document.getElementById('undoBtn');
+    
+    // История изменений для undo
+    let editorHistory = [];
+    let historyIndex = -1;
+    
+    // Сохраняем начальное состояние
+    saveEditorState();
+    
+    // Сохранение состояния редактора
+    function saveEditorState() {
+        // Удаляем все состояния после текущего индекса (если делали undo)
+        editorHistory = editorHistory.slice(0, historyIndex + 1);
+        
+        // Добавляем новое состояние
+        editorHistory.push(editor.innerHTML);
+        historyIndex++;
+        
+        // Ограничиваем размер истории
+        if (editorHistory.length > 50) {
+            editorHistory.shift();
+            historyIndex--;
+        }
+    }
+    
+    // Обработчики кнопок форматирования
+    boldBtn.addEventListener('click', function() {
+        document.execCommand('bold', false, null);
+        saveEditorState();
+    });
+    
+    italicBtn.addEventListener('click', function() {
+        document.execCommand('italic', false, null);
+        saveEditorState();
+    });
+    
+    linkBtn.addEventListener('click', function() {
+        const url = prompt('Введите URL:', 'https://');
+        if (url) {
+            document.execCommand('createLink', false, url);
+            saveEditorState();
+        }
+    });
+    
+    undoBtn.addEventListener('click', function() {
+        if (historyIndex > 0) {
+            historyIndex--;
+            editor.innerHTML = editorHistory[historyIndex];
+        }
+    });
+    
+    // Сохраняем состояние при изменении
+    editor.addEventListener('input', saveEditorState);
+
+    // 2. Выделение таблицы
+    const table = document.getElementById('dataTable');
+    const selectRowBtn = document.getElementById('selectRowBtn');
+    const selectColumnBtn = document.getElementById('selectColumnBtn');
+    const copySelectedBtn = document.getElementById('copySelectedBtn');
+    const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+    
+    let selectedCells = [];
+    let selectedColumnIndex = -1;
+    let selectedRowIndex = -1;
+    
+    // Выделение строки
+    selectRowBtn.addEventListener('click', function() {
+        clearSelection();
+        const rowIndex = prompt('Введите номер строки (начиная с 1):');
+        
+        if (rowIndex && rowIndex > 0 && rowIndex <= table.rows.length) {
+            selectedRowIndex = rowIndex - 1;
+            const row = table.rows[selectedRowIndex];
+            row.classList.add('selected');
+            
+            // Добавляем все ячейки строки в выделение
+            Array.from(row.cells).forEach(cell => {
+                selectedCells.push(cell);
+            });
+        }
+    });
+    
+    // Выделение столбца
+    selectColumnBtn.addEventListener('click', function() {
+        clearSelection();
+        const columnName = prompt('Введите название столбца:');
+        
+        if (columnName) {
+            // Находим индекс столбца по названию в заголовке
+            const headers = table.rows[0].cells;
+            for (let i = 0; i < headers.length; i++) {
+                if (headers[i].textContent.trim() === columnName.trim()) {
+                    selectedColumnIndex = i;
+                    break;
+                }
+            }
+            
+            if (selectedColumnIndex !== -1) {
+                // Выделяем все ячейки в столбце
+                for (let i = 1; i < table.rows.length; i++) {
+                    const cell = table.rows[i].cells[selectedColumnIndex];
+                    cell.classList.add('selected');
+                    selectedCells.push(cell);
+                }
+            } else {
+                alert('Столбец не найден!');
+            }
+        }
+    });
+    
+    // Копирование выделенного
+    copySelectedBtn.addEventListener('click', function() {
+        if (selectedCells.length === 0) {
+            alert('Ничего не выделено!');
+            return;
+        }
+        
+        let textToCopy = '';
+        
+        if (selectedRowIndex !== -1) {
+            // Копируем строку
+            const row = table.rows[selectedRowIndex];
+            Array.from(row.cells).forEach((cell, index) => {
+                textToCopy += cell.textContent + (index < row.cells.length - 1 ? '\t' : '');
+            });
+        } else if (selectedColumnIndex !== -1) {
+            // Копируем столбец
+            for (let i = 1; i < table.rows.length; i++) {
+                textToCopy += table.rows[i].cells[selectedColumnIndex].textContent + '\n';
+            }
+        } else {
+            // Копируем отдельные ячейки
+            selectedCells.forEach(cell => {
+                textToCopy += cell.textContent + '\n';
+            });
+        }
+        
+        navigator.clipboard.writeText(textToCopy.trim())
+            .then(() => alert('Скопировано в буфер обмена!'))
+            .catch(err => alert('Ошибка копирования: ' + err));
+    });
+    
+    // Удаление выделенного
+    deleteSelectedBtn.addEventListener('click', function() {
+        if (selectedCells.length === 0) {
+            alert('Ничего не выделено!');
+            return;
+        }
+        
+        if (confirm('Удалить выделенные данные?')) {
+            selectedCells.forEach(cell => {
+                cell.textContent = '';
+            });
+            clearSelection();
+        }
+    });
+    
+    // Очистка выделения
+    function clearSelection() {
+        // Убираем выделение со всех ячеек и строк
+        document.querySelectorAll('.selected').forEach(el => {
+            el.classList.remove('selected');
+        });
+        
+        selectedCells = [];
+        selectedColumnIndex = -1;
+        selectedRowIndex = -1;
+    }
+    
+    // Выделение ячеек по клику
+    table.addEventListener('click', function(e) {
+        const cell = e.target.closest('td');
+        if (!cell) return;
+        
+        // Если нажат Ctrl, добавляем/удаляем ячейку из выделения
+        if (e.ctrlKey) {
+            if (cell.classList.contains('selected')) {
+                cell.classList.remove('selected');
+                selectedCells = selectedCells.filter(c => c !== cell);
+            } else {
+                cell.classList.add('selected');
+                selectedCells.push(cell);
+            }
+            
+            // Сбрасываем выделение строки/столбца
+            selectedColumnIndex = -1;
+            selectedRowIndex = -1;
+            document.querySelectorAll('tr.selected').forEach(row => {
+                row.classList.remove('selected');
+            });
+        }
+    });
+
+    // 3. Поиск по странице
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    const prevMatchBtn = document.getElementById('prevMatchBtn');
+    const nextMatchBtn = document.getElementById('nextMatchBtn');
+    const matchCounter = document.getElementById('matchCounter');
+    
+    let searchResults = [];
+    let currentMatchIndex = -1;
+    
+    // Поиск текста
+    searchBtn.addEventListener('click', function() {
+        const searchText = searchInput.value.trim();
+        if (!searchText) return;
+        
+        clearSearchResults();
+        
+        // Ищем текст во всем body
+        const pageText = document.body.innerHTML;
+        const regex = new RegExp(searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+        
+        // Заменяем найденные совпадения на выделенные
+        document.body.innerHTML = document.body.innerHTML.replace(
+            regex, 
+            match => `<span class="search-result">${match}</span>`
+        );
+        
+        // Сохраняем все найденные элементы
+        searchResults = Array.from(document.querySelectorAll('.search-result'));
+        currentMatchIndex = -1;
+        
+        if (searchResults.length > 0) {
+            matchCounter.textContent = `Найдено: ${searchResults.length}`;
+            navigateToMatch(0);
+        } else {
+            matchCounter.textContent = 'Ничего не найдено';
+        }
+    });
+    
+    // Очистка результатов поиска
+    clearSearchBtn.addEventListener('click', clearSearchResults);
+    
+    function clearSearchResults() {
+        searchResults.forEach(result => {
+            const parent = result.parentNode;
+            parent.replaceChild(document.createTextNode(result.textContent), result);
+        });
+        
+        searchResults = [];
+        currentMatchIndex = -1;
+        matchCounter.textContent = '';
+    }
+    
+    // Навигация по результатам
+    prevMatchBtn.addEventListener('click', function() {
+        if (searchResults.length > 0) {
+            const newIndex = (currentMatchIndex - 1 + searchResults.length) % searchResults.length;
+            navigateToMatch(newIndex);
+        }
+    });
+    
+    nextMatchBtn.addEventListener('click', function() {
+        if (searchResults.length > 0) {
+            const newIndex = (currentMatchIndex + 1) % searchResults.length;
+            navigateToMatch(newIndex);
+        }
+    });
+    
+    function navigateToMatch(index) {
+        if (index < 0 || index >= searchResults.length) return;
+        
+        // Убираем подсветку с текущего элемента
+        if (currentMatchIndex !== -1) {
+            searchResults[currentMatchIndex].style.backgroundColor = 'yellow';
+        }
+        
+        currentMatchIndex = index;
+        const match = searchResults[currentMatchIndex];
+        match.style.backgroundColor = 'orange';
+        
+        // Прокручиваем к найденному элементу
+        match.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // 4. Кастомное контекстное меню
+    const contextMenu = document.getElementById('contextMenu');
+    const copyMenuItem = document.getElementById('copyMenuItem');
+    const pasteMenuItem = document.getElementById('pasteMenuItem');
+    const searchGoogleMenuItem = document.getElementById('searchGoogleMenuItem');
+    
+    let selectedText = '';
+    
+    // Показываем меню при выделении текста
+    document.addEventListener('mouseup', function(e) {
+        const selection = window.getSelection();
+        selectedText = selection.toString().trim();
+        
+        if (selectedText && e.button === 2) {
+            e.preventDefault();
+            
+            // Позиционируем меню рядом с курсором
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = `${e.pageX}px`;
+            contextMenu.style.top = `${e.pageY}px`;
+        } else {
+            contextMenu.style.display = 'none';
+        }
+    });
+    
+    // Скрываем меню при клике вне его
+    document.addEventListener('click', function() {
+        contextMenu.style.display = 'none';
+    });
+    
+    // Копирование текста
+    copyMenuItem.addEventListener('click', function() {
+        if (selectedText) {
+            navigator.clipboard.writeText(selectedText)
+                .then(() => alert('Текст скопирован в буфер обмена!'))
+                .catch(err => alert('Ошибка копирования: ' + err));
+        }
+        contextMenu.style.display = 'none';
+    });
+    
+    // Вставка текста
+    pasteMenuItem.addEventListener('click', function() {
+        navigator.clipboard.readText()
+            .then(text => {
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    range.deleteContents();
+                    range.insertNode(document.createTextNode(text));
+                }
+            })
+            .catch(err => alert('Ошибка вставки: ' + err));
+        
+        contextMenu.style.display = 'none';
+    });
+    
+    // Поиск в Google
+    searchGoogleMenuItem.addEventListener('click', function() {
+        if (selectedText) {
+            window.open(`https://www.google.com/search?q=${encodeURIComponent(selectedText)}`, '_blank');
+        }
+        contextMenu.style.display = 'none';
+    });
+    
+    // Запрещаем стандартное контекстное меню
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+    });
+</script>
+</body>
+</html>
